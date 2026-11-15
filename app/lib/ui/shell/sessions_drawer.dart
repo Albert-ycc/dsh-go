@@ -39,7 +39,9 @@ import '../safe_mode/safe_mode_banner.dart';
 import '../share/share_entry.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
+import '../web/dsh_web_launcher.dart';
 import '../web/mode_home.dart';
+import '../web/web_target.dart';
 import '../workspace/workspace_switcher.dart';
 import '../workspace/workspaces_page.dart';
 import 'adaptive/adaptive_layout.dart' show WindowClass;
@@ -928,6 +930,12 @@ class _RemoteEmptyState extends ConsumerWidget {
   }
 }
 
+/// A build's own page on the engine's web server, one tap from the drawer
+/// (`--dart-define=DSH_GO_SHORTCUT_PATH=/bandu/`, `DSH_GO_SHORTCUT_TITLE=伴读`);
+/// empty: no such key.
+const webShortcutPath = String.fromEnvironment('DSH_GO_SHORTCUT_PATH');
+const webShortcutTitle = String.fromEnvironment('DSH_GO_SHORTCUT_TITLE', defaultValue: webShortcutPath);
+
 /// The drawer's footer: who this is talking to (the active host and its state;
 /// tap to switch, or to manage remote hosts), then 网页版 and 设置 as two equal
 /// round buttons.
@@ -1040,6 +1048,14 @@ class IdentityBar extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 8),
+          if (webShortcutPath.isNotEmpty) ...[
+            _RoundButton(
+              icon: AppIcons.skill,
+              tooltip: webShortcutTitle,
+              onTap: () => openDshWeb(context, ref, target: const DshWebTarget(path: webShortcutPath)),
+            ),
+            const SizedBox(width: 8),
+          ],
           _RoundButton(icon: AppIcons.allFeatures, tooltip: l10n.hubSettingsAllFeatures, onTap: onFeatures),
           const SizedBox(width: 8),
           _RoundButton(

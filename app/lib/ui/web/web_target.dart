@@ -19,6 +19,7 @@ class DshWebTarget {
     this.rightbar,
     this.sidebar = false,
     this.newSession = false,
+    this.path,
   });
 
   /// Opens this session (one extra page load: the bridge stores the
@@ -52,8 +53,15 @@ class DshWebTarget {
   /// Starts a new conversation (the sidebar's 新会话); ignores [sessionId].
   final bool newSession;
 
+  /// A same-origin page of the engine's web server to go to after the home
+  /// page has logged in (`/bandu/`, a plugin's own page); must start with one `/`.
+  final String? path;
+
+  String? get _path => path != null && path!.startsWith('/') && !path!.startsWith('//') ? path : null;
+
   /// The plain home page: nothing to open.
   bool get isHome =>
+      _path == null &&
       sessionId == null &&
       panel == null &&
       settings == null &&
@@ -71,10 +79,13 @@ class DshWebTarget {
     'rightbar': ?rightbar?.key,
     if (sidebar) 'sidebar': true,
     if (newSession) 'newSession': true,
+    'path': ?_path,
   };
 
   /// The call the WebView runs once the page and the bridge are loaded.
-  String get openScript => 'window.__dshAppOpen && window.__dshAppOpen(${jsonEncode(toJson())});';
+  String get openScript => _path != null
+      ? 'location.replace(${jsonEncode(_path)});'
+      : 'window.__dshAppOpen && window.__dshAppOpen(${jsonEncode(toJson())});';
 
   /// A copy aimed at [sessionId] (keeps the destination).
   DshWebTarget inSession(String? sessionId) => _copy(sessionId: sessionId, pluginItem: pluginItem);
@@ -105,6 +116,7 @@ class DshWebTarget {
     rightbar: rightbar,
     sidebar: sidebar,
     newSession: newSession,
+    path: path,
   );
 
   @override
