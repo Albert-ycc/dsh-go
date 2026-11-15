@@ -20,12 +20,27 @@ data class RuntimeManifest(
     val launchArgv: List<String>,
     val launchEnv: Map<String, String>,
     val raw: JSONObject,
+    /** Asset folder holding this manifest and its rootfs archive. */
+    val assetDir: String = ASSET_DIR,
 ) {
+    /** The bionic package's Node executable (a file in nativeLibraryDir); null for glibc manifests. */
+    val bionicNode: String? get() = raw.optJSONObject("bionic")?.optString("node")?.ifEmpty { null }
+
     companion object {
         const val ASSET_DIR = "runtime"
+        const val BIONIC_ASSET_DIR = "runtime/bionic"
 
-        fun load(context: Context): RuntimeManifest {
-            val text = context.assets.open("$ASSET_DIR/manifest.json").bufferedReader().use { it.readText() }
+        /** The bionic package is bundled (arm64 flavor of a build that ran runtime/build-bionic.sh). */
+        fun bionicBundled(context: Context): Boolean =
+            runCatching { context.assets.list(BIONIC_ASSET_DIR)?.contains("manifest.json") == true }.getOrDefault(false)
+
+        /** The glibc runtime (PRoot / Direct) is bundled; an arm64 APK built from runtime/out-bionic alone has none. */
+        fun glibcBundled(context: Context): Boolean =
+            runCatching { context.assets.list(ASSET_DIR)?.contains("manifest.json") == true }.getOrDefault(false)
+
+        fun load(context: Context, bionic: Boolean = false): RuntimeManifest {
+            val dir = if (bionic) BIONIC_ASSET_DIR else ASSET_DIR
+            val text = context.assets.open("$dir/manifest.json").bufferedReader().use { it.readText() }
             val json = JSONObject(text)
             val launch = json.optJSONObject("launch") ?: JSONObject()
             val argvJson = launch.optJSONArray("argv")
@@ -44,6 +59,7 @@ data class RuntimeManifest(
                 launchArgv = argv,
                 launchEnv = env,
                 raw = json,
+                assetDir = dir,
             )
         }
     }

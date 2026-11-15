@@ -49,11 +49,14 @@ object AppAuthGuest {
 
     fun file(rootfs: File) = File(rootfs, PATCH.removePrefix("/"))
 
+    /** The overlay as the engine reads it: guest paths mapped by [paths]. */
+    fun patchYaml(paths: GuestPaths = GuestPaths.IDENTITY): String = paths.text(PATCH_YAML)
+
     /**
      * Copies the bridge modules, then writes the overlay; files already up to date are left alone.
      * False (and no overlay file) when anything could not be written, so the launch leaves it out.
      */
-    fun writeFiles(context: Context, rootfs: File): Boolean {
+    fun writeFiles(context: Context, rootfs: File, paths: GuestPaths = GuestPaths.IDENTITY): Boolean {
         val patch = file(rootfs)
         return try {
             val dir = File(rootfs, GUEST_DIR.removePrefix("/"))
@@ -63,7 +66,7 @@ object AppAuthGuest {
                 val bytes = context.assets.open("$ASSET_DIR/$name").use { it.readBytes() }
                 writeIfChanged(File(dir, name), bytes)
             }
-            writeIfChanged(patch, PATCH_YAML.toByteArray())
+            writeIfChanged(patch, patchYaml(paths).toByteArray())
             true
         } catch (_: Exception) {
             patch.delete()

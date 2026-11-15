@@ -242,6 +242,7 @@
     <string name="safe_normal_recovered">主配置已经正常运行 2 分钟，已恢复正常模式。</string>
     <string name="safe_probation_failed">正常模式还是起不来，已回到安全模式。</string>
     <string name="safe_auto_started">DSH 连续两次启动失败，已用安全模式启动。你的对话都在。</string>
+    <string name="engine_family_switched">这台手机的系统拦截了标准引擎，已自动切换到手机原生引擎。</string>
     <string name="safe_patch_hazard">全局补丁文件：对所有配置（包括安全模式）都生效，可能就是它让 DSH 起不来。</string>
     <string name="safe_env_hazard">设置了 %1$s，DSH 不允许在 .env 里设置这些变量，会拒绝启动。</string>
     <string name="safe_config_missing">找不到主配置 profiles/web/package.json</string>

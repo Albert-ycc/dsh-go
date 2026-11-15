@@ -170,6 +170,12 @@ class RuntimeStatus {
     this.launchSelectedMode,
     this.launchSpawned = false,
     this.launchFailureReason,
+    this.engineFamily = 'glibc',
+    this.engineFamilyAvailable = false,
+    this.engineFamilyOverride = 'auto',
+    this.engineFamilyReason,
+    this.glibcBundled = true,
+    this.rootfs,
     this.tidyingFiles = false,
   });
 
@@ -232,6 +238,29 @@ class RuntimeStatus {
   final bool launchSpawned;
   final String? launchFailureReason;
 
+  /// The runtime family the next start (or the running process) uses: `glibc`
+  /// (PRoot / Direct) or `bionic` (a Node child process on the phone's own libc).
+  /// Older native sides do not say and stay `glibc`.
+  final String engineFamily;
+
+  /// The bionic package exists for this phone; false greys that choice out.
+  final bool engineFamilyAvailable;
+
+  /// The saved choice: `auto`, `glibc` or `bionic`.
+  final String engineFamilyOverride;
+
+  /// Why [engineFamily] is what it is: `override`, `fallback` (glibc failed to
+  /// start under the system call filter), `seLinux`, `syscallProbe` or `default`.
+  /// Unknown codes are shown as they are.
+  final String? engineFamilyReason;
+
+  /// This APK carries the glibc runtime (an older native side only ever had it); false greys out 强制 glibc.
+  final bool glibcBundled;
+
+  /// Canonical rootfs directory of the family in use (guest `/`); null from an
+  /// older native side or before it answers. Read it fresh: a family switch moves it.
+  final String? rootfs;
+
   /// The start in progress has been turning PRoot's fake hard links into real
   /// files for more than a moment (once per install, before Direct launch).
   final bool tidyingFiles;
@@ -245,7 +274,15 @@ class RuntimeStatus {
     'launchSelectedMode': launchSelectedMode,
     'launchSpawned': launchSpawned,
     'launchFailureReason': launchFailureReason,
+    'engineFamily': engineFamily,
+    'engineFamilyAvailable': engineFamilyAvailable,
+    'engineFamilyOverride': engineFamilyOverride,
+    'engineFamilyReason': engineFamilyReason,
+    'glibcBundled': glibcBundled,
+    'rootfs': rootfs,
   };
+
+  bool get isBionic => engineFamily == 'bionic';
 
   bool get isRunning => phase == RuntimePhase.running && baseUrl != null && token != null;
 
@@ -297,6 +334,12 @@ class RuntimeStatus {
     launchSelectedMode: map['launchSelectedMode'] as String?,
     launchSpawned: map['launchSpawned'] == true,
     launchFailureReason: map['launchFailureReason'] as String?,
+    engineFamily: map['engineFamily'] as String? ?? 'glibc',
+    engineFamilyAvailable: map['engineFamilyAvailable'] == true,
+    engineFamilyOverride: map['engineFamilyOverride'] as String? ?? 'auto',
+    engineFamilyReason: map['engineFamilyReason'] as String?,
+    glibcBundled: map['glibcBundled'] as bool? ?? true,
+    rootfs: map['rootfs'] as String?,
     tidyingFiles: map['tidyingFiles'] == true,
   );
 }
@@ -608,6 +651,10 @@ class RuntimeBridge {
 
   /// Takes effect on the next start; native code rejects changes while active.
   Future<void> setDirectEngine(bool enabled) => _methods.invokeMethod<void>('setDirectEngine', {'enabled': enabled});
+
+  /// [family] is `auto`, `glibc` or `bionic`. Takes effect on the next start;
+  /// native code rejects changes while the engine is active.
+  Future<void> setEngineFamily(String family) => _methods.invokeMethod<void>('setEngineFamily', {'family': family});
 
   /// Output around the last failure, tokens masked.
   Future<List<String>> failureLog() async => (await _methods.invokeListMethod<String>('failureLog')) ?? const [];

@@ -22,6 +22,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../diagnostics/diagnostics_channel.dart';
+import '../runtime/runtime_state.dart';
 import '../share_code/guest_fs.dart';
 import '../voice/voice_model_assets.dart';
 import '../voice/voice_model_download.dart';
@@ -155,11 +156,16 @@ abstract class VoiceModelPlatform {
 }
 
 class DeviceVoiceModelPlatform implements VoiceModelPlatform {
+  DeviceVoiceModelPlatform({this.rootfs});
+
+  /// The bridge's current rootfs path, asked at each use (a family switch moves it).
+  final String? Function()? rootfs;
+
   static const _runtime = MethodChannel('dsh/runtime');
 
   @override
   Future<VoiceModelFiles?> files() async {
-    final fs = await GuestFs.local();
+    final fs = await GuestFs.local(rootfs: rootfs?.call());
     return fs == null ? null : VoiceModelFiles(fs.root);
   }
 
@@ -199,7 +205,9 @@ class DeviceVoiceModelPlatform implements VoiceModelPlatform {
   }
 }
 
-final voiceModelPlatformProvider = Provider<VoiceModelPlatform>((ref) => DeviceVoiceModelPlatform());
+final voiceModelPlatformProvider = Provider<VoiceModelPlatform>(
+  (ref) => DeviceVoiceModelPlatform(rootfs: () => ref.read(localRuntimeProvider).status.rootfs),
+);
 
 /// Texts for the engine notification (set by the shell, which knows the language).
 class VoiceModelNoticeText {

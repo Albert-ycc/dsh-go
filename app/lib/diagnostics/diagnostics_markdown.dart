@@ -39,6 +39,7 @@ void _environment(StringBuffer b, DiagnosticsSnapshot s) {
   final app = s.native.app;
   final device = s.native.device;
   final manifest = s.native.manifest;
+  final engine = s.native.engine;
   b
     ..writeln('## 环境')
     ..writeln('- App：${_join([AppInfo.version, app['versionName'], app['versionCode']?.toString()])}')
@@ -71,6 +72,12 @@ void _environment(StringBuffer b, DiagnosticsSnapshot s) {
       '${st.launchFailureReason == null ? '' : ' · 最近失败 ${st.launchFailureReason}'}'
       '${st.directEngineFallbackReason == null ? '' : ' · 回退 ${st.directEngineFallbackReason}'}',
     )
+    ..writeln(
+      '- 运行环境：${st.engineFamily} · 设置 ${st.engineFamilyOverride}'
+      '${st.engineFamilyReason == null ? '' : ' · 原因 ${st.engineFamilyReason}'}'
+      '${st.engineFamilyAvailable ? '' : ' · 无 bionic 包'}',
+    )
+    ..writeln('- 判定依据：SELinux 域 ${_fact(engine['seLinuxDomain'])} · 系统指纹 ${_fact(engine['fingerprint'])}')
     ..writeln('- 引擎地址：${st.baseUrl ?? '—'}（token 不回传）');
   if (st.error case final error? when error.isNotEmpty) b.writeln('- 最近错误：$error');
   if (st.networkBlocked) b.writeln('- 系统限制联网：${_time(st.networkBlockedAt ?? s.at)} 起');
@@ -167,4 +174,11 @@ String _time(DateTime at) {
 String _firstLine(String text) {
   final line = text.split('\n').first.trim();
   return line.length <= 240 ? line : '${line.substring(0, 240)}…';
+}
+
+/// A device fact from the native side, clipped; '—' when it did not say.
+String _fact(Object? v) {
+  final text = v is String ? v.trim() : '';
+  if (text.isEmpty) return '—';
+  return text.length > 200 ? '${text.substring(0, 200)}…' : text;
 }

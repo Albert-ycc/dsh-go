@@ -10,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
+import '../../runtime/runtime_state.dart';
+import '../../state/hosts_state.dart';
 import '../../state/terminal_state.dart';
 import '../common/app_sheet.dart';
 import '../common/empty_view.dart';
@@ -161,8 +163,20 @@ class _TerminalPageState extends ConsumerState<TerminalPage> {
     final padding = MediaQuery.paddingOf(context);
     final cwd = selected?.info?.cwd ?? state.environment?.cwd ?? '';
 
+    // bionic 运行环境里没有终端需要的组件：收起入口，只留原因。
+    final bionicLocal =
+        ref.watch(activeHostProvider.select((h) => h.isLocal)) &&
+        ref.watch(localRuntimeProvider.select((r) => r.status.isBionic));
+
     final Widget body;
-    if (state.offline) {
+    if (bionicLocal) {
+      body = Center(
+        child: EmptyView(
+          art: const FeatureTile(FeatureKind.terminal, size: FeatureTile.empty),
+          title: l10n.phoneBionicTerminalUnavailable,
+        ),
+      );
+    } else if (state.offline) {
       body = Center(
         child: EmptyView(icon: AppIcons.offline, title: TerminalCopy.offline),
       );

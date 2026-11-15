@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="phone_relay_title">DSH Go · Mac 中继</string>
+    <string name="phone_relay_state_ok">已连接 Mac 中继</string>
+    <string name="phone_relay_state_unconfigured">还没有配置 Mac 中继。请到 设置 → 手机操控 配对。</string>
+    <string name="phone_relay_state_unreachable">连不上 Mac 中继。请确认 Mac 开着、中继在运行、两者在同一个网络里。</string>
+    <string name="phone_relay_state_unauthorized">Mac 中继不再认这台手机，请重新配对。</string>
+    <string name="phone_relay_state_halted">Mac 上的中继被暂停了。请在 Mac 上执行 dsh-relay resume。</string>
+    <string name="phone_relay_state_device_offline">Mac 连不上这台手机。请更新无线调试地址，或插上 USB。</string>
+    <string name="phone_relay_state_device_unauthorized">手机还没有授权这台 Mac。请在手机上点「允许」。</string>
+    <string name="phone_relay_state_locked">手机已锁屏，请解锁后继续。</string>
+    <string name="phone_relay_pair_wrong_code">配对码不对、已过期，或试得太多次。请在 Mac 上重新执行 dsh-relay pair。</string>
+    <string name="phone_relay_state_store_unreadable">手机上保存的 Mac 配对读不出来了，请重新配对。</string>
+    <string name="phone_relay_store_failed">手机没能保存配对结果（系统密钥库不可用），Mac 上没有留下配对。请稍后重试。</string>
+    <string name="phone_relay_pair_changed">中继出示的证书和配对时看到的不一致，没有保存任何内容。</string>
+    <string name="phone_relay_bad_address">Mac 的地址要写成 IP:端口，例如 192.0.2.10:8731。</string>
+    <string name="phone_relay_bad_target">无线调试地址要写成 IP:端口，例如 192.0.2.20:46225。</string>
+    <string name="phone_relay_not_paired">请先和 Mac 中继配对。</string>
+</resources>

@@ -374,6 +374,114 @@ class A11yKeeperStatus {
   final String command;
 }
 
+/// Who drives the screen: the accessibility service on Android, or the Mac
+/// relay on 鸿蒙卓易通 (where the container has no accessibility service).
+enum PhoneHand {
+  a11y,
+  mac;
+
+  static PhoneHand parse(Object? wire) => wire == 'mac' ? mac : a11y;
+}
+
+/// `relay.state`: how far the Mac relay chain gets right now.
+enum PhoneRelayState {
+  ok,
+  unreachable,
+  unauthorized,
+  halted,
+  deviceOffline,
+  deviceUnauthorized,
+  locked,
+
+  /// relay.enc exists but cannot be decrypted: only a new pairing helps.
+  storeUnreadable,
+  unconfigured;
+
+  static PhoneRelayState parse(Object? wire) => switch (wire) {
+    'ok' => ok,
+    'unreachable' => unreachable,
+    'unauthorized' => unauthorized,
+    'halted' => halted,
+    'device_offline' => deviceOffline,
+    'device_unauthorized' => deviceUnauthorized,
+    'locked' => locked,
+    'store_unreadable' => storeUnreadable,
+    _ => unconfigured,
+  };
+}
+
+/// `relay.device`: the phone as the Mac last saw it.
+class PhoneRelayDevice {
+  const PhoneRelayDevice({this.model, this.viaTcp, this.foreground});
+
+  factory PhoneRelayDevice.fromMap(Map<Object?, Object?> m) => PhoneRelayDevice(
+    model: _text(m['model']),
+    viaTcp: switch (m['via']) {
+      'tcp' => true,
+      'usb' => false,
+      _ => null,
+    },
+    foreground: _text(m['foreground']),
+  );
+
+  final String? model;
+
+  /// True: 无线调试; false: USB; null: not said.
+  final bool? viaTcp;
+
+  /// Bundle name of the app in front, from the last screen read (may be stale or absent).
+  final String? foreground;
+}
+
+DateTime? _lastOk(int? ms) => ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+
+class PhoneRelay {
+  const PhoneRelay({
+    this.configured = false,
+    this.addr,
+    this.state = PhoneRelayState.unconfigured,
+    this.device = const PhoneRelayDevice(),
+    this.lastOkAt,
+  });
+
+  factory PhoneRelay.fromMap(Map<Object?, Object?> m) => PhoneRelay(
+    configured: _flag(m['configured']),
+    addr: _text(m['addr']),
+    state: PhoneRelayState.parse(m['state']),
+    device: PhoneRelayDevice.fromMap(_map(m['device'])),
+    lastOkAt: _lastOk(_int(m['lastOkAt'])),
+  );
+
+  final bool configured;
+  final String? addr;
+  final PhoneRelayState state;
+  final PhoneRelayDevice device;
+  final DateTime? lastOkAt;
+}
+
+/// Reply of the relay methods: `{ok, code?, reason?}`. [code] is a relay or
+/// pairing error code (`bad_address`, `unauthorized`, `pin_mismatch`,
+/// `relay_unreachable`, `device_offline`, ...); [reason] is the native text.
+class PhoneRelayResult {
+  const PhoneRelayResult({required this.ok, this.code, this.reason, this.state, this.device});
+
+  factory PhoneRelayResult.fromMap(Map<Object?, Object?> m) => PhoneRelayResult(
+    ok: _flag(m['ok']),
+    code: _text(m['code']),
+    reason: _text(m['reason']),
+    state: m['state'] == null ? null : PhoneRelayState.parse(m['state']),
+    device: PhoneRelayDevice.fromMap(m),
+  );
+
+  final bool ok;
+  final String? code;
+  final String? reason;
+
+  /// `relayTest` only.
+  final PhoneRelayState? state;
+  final PhoneRelayDevice? device;
+}
+
 /// Snapshot of the native phone-control module (`status` / status events).
 class PhoneStatus {
   const PhoneStatus({
@@ -389,6 +497,9 @@ class PhoneStatus {
     this.background = const PhoneBackgroundStatus(),
     this.task = const PhoneTaskStatus(),
     this.device = const PhoneDevice(),
+    this.hand = PhoneHand.a11y,
+    this.handSetting = 'auto',
+    this.relay = const PhoneRelay(),
   });
 
   /// The native module isn't there (or failed to answer): "未就绪".
@@ -403,7 +514,10 @@ class PhoneStatus {
       confirmationNotifications = null,
       background = const PhoneBackgroundStatus(),
       task = const PhoneTaskStatus(),
-      device = const PhoneDevice();
+      device = const PhoneDevice(),
+      hand = PhoneHand.a11y,
+      handSetting = 'auto',
+      relay = const PhoneRelay();
 
   factory PhoneStatus.fromMap(Map<Object?, Object?> m) => PhoneStatus(
     enabled: _flag(m['enabled']),
@@ -416,6 +530,9 @@ class PhoneStatus {
     background: PhoneBackgroundStatus.fromMap(_map(m['background'])),
     task: PhoneTaskStatus.fromMap(_map(m['task'])),
     device: PhoneDevice.fromMap(_map(m['device'])),
+    hand: PhoneHand.parse(m['hand']),
+    handSetting: _text(m['handSetting']) ?? 'auto',
+    relay: PhoneRelay.fromMap(_map(m['relay'])),
   );
 
   /// The native side answered. False → everything else is a default.
@@ -441,6 +558,13 @@ class PhoneStatus {
   final PhoneTaskStatus task;
   final PhoneDevice device;
 
+  /// The hand in effect; `mac` on 卓易通 (the 悬浮条 and accessibility steps don't apply there).
+  final PhoneHand hand;
+
+  /// What the person chose: `auto`, `a11y` or `mac`.
+  final String handSetting;
+  final PhoneRelay relay;
+
   PhoneStatus copyWith({bool? enabled}) => PhoneStatus(
     ready: ready,
     error: error,
@@ -454,6 +578,9 @@ class PhoneStatus {
     background: background,
     task: task,
     device: device,
+    hand: hand,
+    handSetting: handSetting,
+    relay: relay,
   );
 }
 
@@ -1103,6 +1230,35 @@ class PhoneChannel {
       return const PhoneFinish();
     } on PlatformException {
       return const PhoneFinish();
+    }
+  }
+
+  Future<bool> setHand(String hand) => _bool('setHand', {'hand': hand});
+
+  /// The one-time code goes to the native side only: never logged, stored or
+  /// echoed back. The token that comes out of pairing stays native too.
+  Future<PhoneRelayResult> relayPair(String addr, String code) => _relay('relayPair', {'addr': addr, 'code': code});
+
+  Future<PhoneRelayResult> relayTest() => _relay('relayTest');
+
+  Future<PhoneRelayResult> relaySetTarget(String addr) => _relay('relaySetTarget', {'addr': addr});
+
+  /// Stops only; resuming is `dsh-relay resume` on the Mac.
+  Future<PhoneRelayResult> relayHalt() => _relay('relayHalt');
+
+  /// Deletes this phone's pairing; the Mac's token needs `dsh-relay revoke`.
+  Future<bool> relayForget() => _bool('relayForget');
+
+  Future<PhoneRelayResult> _relay(String method, [Object? args]) async {
+    try {
+      final map = await _methods.invokeMapMethod<Object?, Object?>(method, args);
+      return map == null
+          ? PhoneRelayResult(ok: false, reason: phoneNotReadyReason)
+          : PhoneRelayResult.fromMap(map);
+    } on MissingPluginException {
+      return PhoneRelayResult(ok: false, reason: phoneNotReadyReason);
+    } on PlatformException catch (e) {
+      return PhoneRelayResult(ok: false, reason: e.message ?? e.code);
     }
   }
 

@@ -1,0 +1,111 @@
+{
+  "phoneRelayTitle": "Mac 中继",
+  "phoneRelaySubtitle": "卓易通里没有无障碍服务，手机操控经你的 Mac 完成",
+  "phoneRelayStepGoPair": "去配对",
+  "phoneRelayStepGoFix": "去处理",
+  "phoneRelayStepOk": "已连接 · {model}",
+  "@phoneRelayStepOk": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneRelayStepOkNoModel": "已连接",
+  "phoneRelayReadScreenFirst": "先完成 Mac 中继配对",
+  "phoneRelayStatusLine": "Mac 中继：{state}",
+  "@phoneRelayStatusLine": {
+    "placeholders": {
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneRelayStateOk": "已连接",
+  "phoneRelayStateUnreachable": "连不上 Mac",
+  "phoneRelayStateUnauthorized": "需要重新配对",
+  "phoneRelayStateHalted": "已暂停",
+  "phoneRelayStateDeviceOffline": "Mac 在线，连不上手机",
+  "phoneRelayStateDeviceUnauthorized": "手机未授权这台 Mac",
+  "phoneRelayStateLocked": "手机已锁屏",
+  "phoneRelayStateUnconfigured": "还没有配对",
+  "phoneRelayHintOk": "Mac 和手机都在线。回到对话里说要做的事就行。",
+  "phoneRelayHintUnreachable": "手机连不到 Mac 上的中继。确认 Mac 开着、中继在运行（Mac 终端运行 dsh-relay status）、手机和 Mac 在同一个网络里，然后点测试连接。",
+  "phoneRelayHintUnauthorized": "Mac 不认这部手机的配对了（授权被撤销，或中继的证书变了）。在 Mac 终端运行 dsh-relay pair 取新的配对码，再在下面重新配对。",
+  "phoneRelayHintHalted": "Mac 上的中继被暂停，手机上的操作不会执行。在 Mac 终端运行 dsh-relay resume 即可恢复，不用重新配对。",
+  "phoneRelayHintDeviceOffline": "中继在线，但 Mac 连不上这部手机。插上 USB，或在手机开着无线调试时点下面的「更新无线调试地址」。",
+  "phoneRelayHintDeviceUnauthorized": "手机还没有允许这台 Mac 调试。看一眼手机屏幕，在弹出的提示里点允许。",
+  "phoneRelayHintLocked": "解锁手机后再下达任务。锁屏时不会执行任何操作。",
+  "phoneRelayHintUnconfigured": "先在 Mac 上装好中继，再在下面配对。装法见用户指南「手机操控」。",
+  "phoneRelayPairTitle": "配对",
+  "phoneRelayPairHint": "在 Mac 终端运行 dsh-relay pair。终端会显示 Mac 的地址和一次性配对码，5 分钟内有效。",
+  "phoneRelayAddrLabel": "Mac 地址",
+  "phoneRelayAddrHelper": "形如 192.0.2.10:8731",
+  "phoneRelayCodeLabel": "配对码",
+  "phoneRelayCodeHelper": "只在这里输入一次，不保存、不进剪贴板、不写日志",
+  "phoneRelayPair": "配对",
+  "phoneRelayPairing": "正在配对…",
+  "phoneRelayPaired": "已配对",
+  "phoneRelayDeviceTitle": "当前设备",
+  "phoneRelayDeviceModel": "机型",
+  "phoneRelayDeviceVia": "连接方式",
+  "phoneRelayViaUsb": "USB",
+  "phoneRelayViaTcp": "无线调试",
+  "phoneRelayDeviceForeground": "前台应用",
+  "phoneRelayDeviceUnknown": "未知",
+  "phoneRelayLastOk": "最近一次成功",
+  "phoneRelayNever": "还没有成功过",
+  "phoneRelayAddr": "Mac 地址",
+  "phoneRelayManageTitle": "管理",
+  "phoneRelayTest": "测试连接",
+  "phoneRelayTestHint": "读一次手机屏幕，确认整条链路通了",
+  "phoneRelayTesting": "正在测试…",
+  "phoneRelayTestOk": "连接正常 · {model}",
+  "@phoneRelayTestOk": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneRelayTestOkNoModel": "连接正常",
+  "phoneRelayTarget": "更新无线调试地址",
+  "phoneRelayTargetHint": "手机的无线调试端口变了时，填新的 ip:端口",
+  "phoneRelayTargetLabel": "无线调试地址",
+  "phoneRelayTargetHelper": "形如 192.0.2.20:46225，在手机的无线调试页能看到",
+  "phoneRelayTargetDone": "无线调试地址已更新",
+  "phoneRelayHalt": "停止中继",
+  "phoneRelayHaltHint": "让 Mac 立即停下所有操作；要恢复，在 Mac 终端运行 dsh-relay resume",
+  "phoneRelayHaltDone": "已通知 Mac 暂停",
+  "phoneRelayRepair": "重新配对",
+  "phoneRelayRepairHint": "换了 Mac，或配对失效时用",
+  "phoneRelayForget": "忘记这台 Mac",
+  "phoneRelayForgetHint": "只删除这部手机上的配对",
+  "phoneRelayForgetTitle": "忘记这台 Mac？",
+  "phoneRelayForgetBody": "只会删除这部手机上的配对。Mac 上的授权还在，要撤销请在 Mac 终端运行 dsh-relay revoke。",
+  "phoneRelayForgetConfirm": "忘记",
+  "phoneRelayForgot": "已忘记这台 Mac",
+  "phoneRelayUpdate": "更新",
+  "phoneRelayErrorBadAddress": "地址格式不对，应该是 ip:端口，例如 192.0.2.10:8731",
+  "phoneRelayErrorUnauthorized": "配对码不对或已过期。回到 Mac 终端重新运行 dsh-relay pair，用新的配对码再试",
+  "phoneRelayErrorPinMismatch": "这台 Mac 没能证明自己就是配对码的发出方，已停止。确认地址没填错、网络可信后重试",
+  "phoneRelayErrorRelayUnreachable": "连不上 Mac 上的中继。确认 Mac 开着、中继在运行、手机和 Mac 在同一个网络里",
+  "phoneRelayErrorForbiddenSource": "Mac 拒绝了这部手机的网络地址。检查手机和 Mac 是否在同一个局域网（或 Tailscale）里",
+  "phoneRelayErrorDeviceLocked": "手机已锁屏，解锁后再试",
+  "phoneRelayErrorHalted": "Mac 上的中继被暂停了。在 Mac 终端运行 dsh-relay resume",
+  "phoneRelayErrorDeviceOffline": "Mac 连不上这部手机。插上 USB，或更新无线调试地址",
+  "phoneRelayErrorDeviceUnauthorized": "手机还没有允许这台 Mac 调试，请在手机上点允许",
+  "phoneRelayErrorDeviceTimeout": "手机上的这一步超时了，稍后再试",
+  "phoneRelayErrorBusy": "Mac 上前面的操作还没结束，稍后再试",
+  "phoneRelayErrorUnconfigured": "还没有配对",
+  "phoneRelayErrorUnknown": "没有成功",
+  "pluginsInstallGitRefusedBionic": "这台手机的运行环境里没有 git，不能从 Git 来源安装插件",
+  "pluginsInstallGitRefusedBionicHint": "换成市场里的 npm 版本；没有 npm 版本的，在电脑上的 DSH 里安装。",
+  "searchKwPhoneRelay": "Mac 中继,中继,卓易通,鸿蒙,配对,hdc,relay,harmony",
+  "phoneRelayRowHint": "卓易通上经 Mac 操作手机",
+  "phoneRelayStateStoreUnreadable": "配对已失效，请重新配对",
+  "phoneRelayHintStoreUnreadable": "手机上保存的配对记录读不出来了（系统密钥变了或文件损坏）。在 Mac 终端运行 dsh-relay pair 取新的配对码，再在下面重新配对。",
+  "phoneRelayErrorStoreFailed": "手机没能保存配对记录（系统密钥不可用或写盘失败）。配对码还没有用掉，再试一次即可",
+  "phoneRelayErrorBadArgs": "请求参数不对，请检查地址后重试",
+  "phoneRelayErrorInternal": "Mac 中继出了内部错误，稍后再试"
+}

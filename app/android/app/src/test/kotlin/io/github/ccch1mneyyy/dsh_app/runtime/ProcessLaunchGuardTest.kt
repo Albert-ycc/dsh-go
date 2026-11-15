@@ -112,6 +112,9 @@ class ProcessLaunchGuardTest {
     private val nativeLanguages = cLanguages + setOf("kt", "java")
     private val allowedNative = setOf(
         "app/android/app/src/main/kotlin/io/github/ccch1mneyyy/dsh_app/runtime/DshProcess.kt",
+        // The bionic engine child and the syscall probe: Java ProcessBuilder children as well, argv from BionicLaunch.
+        "app/android/app/src/main/kotlin/io/github/ccch1mneyyy/dsh_app/runtime/BionicProcess.kt",
+        "app/android/app/src/main/kotlin/io/github/ccch1mneyyy/dsh_app/runtime/EngineFamily.kt",
         // The explicit root channel's `su -c <fixed command>` (argv from RootCommands): also a
         // Java ProcessBuilder child, which closes inherited fds like DshProcess's launches.
         "app/android/app/src/main/kotlin/io/github/ccch1mneyyy/dsh_app/phone/background/RootProcess.kt",

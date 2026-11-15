@@ -1,0 +1,14 @@
+# dsh-go bionic engine: internalModules() reads internals through --expose-internals instead of the node-addon-require-builtin platform package.
+# Applied after runtime/patches/*.diff (chain end of dsh-app-boot/lib/index.js is pinned in pins.json).
+--- a/node_modules/@deepseek-ai/dsh-app-boot/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-app-boot/lib/index.js
+@@ -1778,7 +1778,8 @@
+ 	}
+ };
+ function internalModules() {
+-	const addon = createRequire(import.meta.url)("node-addon-require-builtin");
++	// bionic 构建没有 node-addon-require-builtin 平台包；--expose-internals 下 require 可直接取 internal/ 模块
++	const addon = process.execArgv.includes("--expose-internals") ? { requireBuiltin: (id) => createRequire(import.meta.url)(id) } : createRequire(import.meta.url)("node-addon-require-builtin");
+ 	const esmModule = addon.requireBuiltin("internal/modules/esm/loader");
+ 	const cjsModule = addon.requireBuiltin("internal/modules/cjs/loader");
+ 	const cjsHelpers = addon.requireBuiltin("internal/modules/helpers");

@@ -189,6 +189,19 @@ class PhoneController extends Notifier<PhoneState> {
     }
   }
 
+  /// Pairs with the Mac relay; on success the status (relay block) is read again.
+  Future<PhoneRelayResult> relayPair(String addr, String code) => _thenRefresh(_channel.relayPair(addr, code));
+
+  Future<PhoneRelayResult> relayTest() => _thenRefresh(_channel.relayTest());
+
+  Future<PhoneRelayResult> relaySetTarget(String addr) => _thenRefresh(_channel.relaySetTarget(addr));
+
+  Future<PhoneRelayResult> relayHalt() => _thenRefresh(_channel.relayHalt());
+
+  Future<bool> relayForget() => _thenRefresh(_channel.relayForget());
+
+  Future<bool> setHand(String hand) => _thenRefresh(_channel.setHand(hand));
+
   Future<bool> openAccessibilitySettings() => _channel.openAccessibilitySettings();
 
   Future<PhoneResult> grantSecureSettings() => _thenRefresh(_channel.grantSecureSettings());

@@ -1,0 +1,25 @@
+# dsh-go bionic engine: flock.js accepts process.platform === 'android' and loads bin/bionic/system.node from
+# @deepseek-ai/node-addon-system-android-arm64 (built by runtime/android-inproc/addons/build-flock.sh).
+--- a/node_modules/@deepseek-ai/node-addon-system/lib/flock.js
++++ b/node_modules/@deepseek-ai/node-addon-system/lib/flock.js
+@@ -7,14 +7,18 @@
+     if (binding)
+         return binding;
+     const { platform, arch } = process;
+-    if (platform !== 'linux' && platform !== 'darwin') {
++    if (platform !== 'linux' && platform !== 'darwin' && platform !== 'android') {
+         throw Object.assign(new Error(`flock is not supported on ${platform}-${arch}`), {
+             code: 'ERR_FLOCK_UNSUPPORTED_PLATFORM',
+             syscall: 'flock',
+         });
+     }
+     let filename = 'system.node';
+-    if (platform === 'linux') {
++    if (platform === 'android') {
++        // bionic 构建放在 bin/bionic/，由 runtime/android-inproc/addons/build-flock.sh 产出
++        filename = join('bionic', filename);
++    }
++    else if (platform === 'linux') {
+         // Node's report types omit the libc field supplied by Linux reports.
+         const report = process.report.getReport();
+         filename = join(report.header.glibcVersionRuntime ? 'glibc' : 'musl', filename);

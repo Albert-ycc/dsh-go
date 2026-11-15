@@ -1,7 +1,7 @@
 // The on-device engine's Linux files, read and written from the app for what
 // DSH has no remote method for (user skills and the user's AGENTS.md in a
 // profile share). The guest root is the rootfs under the app's files dir
-// (RuntimeInstaller.kt: `filesDir/runtime/rootfs`); DSH home is `/root/.dsh`.
+// (RuntimeInstaller.kt: `filesDir/runtime/rootfs`, or `runtime-bionic/rootfs` for the bionic family; the bridge's `status.rootfs` says which); DSH home is `/root/.dsh`.
 // The files are small; IO is synchronous.
 
 import 'dart:convert';
@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../runtime/runtime_state.dart';
 import 'share_models.dart';
 
 /// The app-managed global AGENTS.md starts with this (GuestSetup.kt); such a
@@ -47,10 +48,12 @@ class GuestFs {
   /// DSH home's (app-managed) one.
   static const importedAgentsMd = '$agentsHome/AGENTS.md';
 
-  /// The on-device rootfs; null when the runtime isn't installed.
-  static Future<GuestFs?> local() async {
+  /// The on-device rootfs; null when the runtime isn't installed. [rootfs] is
+  /// the bridge's `status.rootfs`; without it (older native side, tests) the
+  /// glibc location is assumed.
+  static Future<GuestFs?> local({String? rootfs}) async {
     try {
-      final dir = Directory('${(await getApplicationSupportDirectory()).path}/runtime/rootfs');
+      final dir = Directory(rootfs ?? '${(await getApplicationSupportDirectory()).path}/runtime/rootfs');
       return dir.existsSync() ? GuestFs(dir) : null;
     } catch (_) {
       return null;
@@ -211,4 +214,7 @@ class GuestFs {
 
 /// The on-device rootfs (null before the runtime is installed). Tests
 /// override it with a temp directory.
-final guestFsProvider = FutureProvider<GuestFs?>((ref) => GuestFs.local());
+/// Watches the bridge's rootfs path, so a family switch builds a new one.
+final guestFsProvider = FutureProvider<GuestFs?>(
+  (ref) => GuestFs.local(rootfs: ref.watch(localRuntimeProvider.select((s) => s.status.rootfs))),
+);

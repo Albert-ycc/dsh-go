@@ -9,7 +9,8 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.github.ccch1mneyyy.dsh_app.voice.VoiceDiagnostics
-import io.github.ccch1mneyyy.dsh_app.runtime.RuntimeManifest
+import io.github.ccch1mneyyy.dsh_app.runtime.EngineFamily
+import io.github.ccch1mneyyy.dsh_app.runtime.RuntimeController
 import io.github.ccch1mneyyy.dsh_app.update.ApkInstaller
 import org.json.JSONObject
 import java.io.File
@@ -24,6 +25,8 @@ import kotlin.concurrent.thread
  *   densityDpi, fontScale}}, manifest: {runtimeVersion, abi,
  *   dshVersion, nodeVersion, pnpmVersion, ubuntuVersion, prootVersion, rootfsBytes,
  *   uncompressedBytes, files}}` (the bundled runtime's `assets/runtime/manifest.json`).
+ *   `engine` → `{engineFamily, engineFamilyReason, engineFamilyOverride, fingerprint, seLinuxDomain}`:
+ *   which engine world the next start uses and the device facts that decide it (fingerprint is diagnostics only).
  * - `engineLog {maxBytes}` → the last lines of the engine's log file (`dsh.log`, and the
  *   rotated `dsh.log.1` before it), which outlives the app process. Lines were already
  *   masked when written (`CrashClassifier.redact`); Dart masks them again.
@@ -48,7 +51,7 @@ class DiagnosticsPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "info" -> background(result) { mapOf("app" to app(), "device" to device(), "manifest" to manifest(), "voice" to VoiceDiagnostics.snapshot(context)) }
+            "info" -> background(result) { mapOf("app" to app(), "device" to device(), "manifest" to manifest(), "engine" to engine(), "voice" to VoiceDiagnostics.snapshot(context)) }
             "engineLog" -> {
                 val maxBytes = (call.argument<Int>("maxBytes") ?: DEFAULT_LOG_BYTES).coerceIn(1024, MAX_LOG_BYTES)
                 background(result) { engineLog(maxBytes) }
@@ -109,8 +112,23 @@ class DiagnosticsPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     }
 
     private fun manifest(): Map<String, Any?> {
-        val json = runCatching { RuntimeManifest.load(context).raw }.getOrNull() ?: return emptyMap()
+        // The manifest of the engine world the controller picked, so the sizes the onboarding card shows
+        // are the bionic package's on a phone that uses it.
+        val controller = RuntimeController.get(context)
+        val json = runCatching { controller.manifest.raw }.getOrNull() ?: return emptyMap()
         return manifestSummary(json)
+    }
+
+    private fun engine(): Map<String, Any?> {
+        val status = RuntimeController.get(context).status()
+        return mapOf(
+            "engineFamily" to status["engineFamily"],
+            "engineFamilyReason" to status["engineFamilyReason"],
+            "engineFamilyOverride" to status["engineFamilyOverride"],
+            // Diagnostics only; never part of the decision (the container's build string is device-specific).
+            "fingerprint" to Build.FINGERPRINT,
+            "seLinuxDomain" to EngineFamily.readSeLinuxDomain()?.trim { it.isWhitespace() || it == '\u0000' },
+        )
     }
 
     private fun engineLog(maxBytes: Int): List<String> {
@@ -144,6 +162,8 @@ class DiagnosticsPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 "prootVersion" to str("prootVersion"),
                 "rootfsBytes" to long("rootfsBytes"),
                 "uncompressedBytes" to long("uncompressedBytes"),
+                // bionic: what the rootfs alone takes on disk (the Node executable stays in nativeLibraryDir).
+                "rootfsUncompressedBytes" to long("rootfsUncompressedBytes"),
                 "files" to entries?.optLong("file", -1L)?.takeIf { it >= 0 },
             ).filterValues { it != null }
         }

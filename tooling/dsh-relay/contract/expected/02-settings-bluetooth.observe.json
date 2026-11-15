@@ -1,0 +1,324 @@
+{
+  "display": {
+    "id": 0,
+    "width": 1320,
+    "height": 2120
+  },
+  "locked": false,
+  "secureKeyboard": false,
+  "main": 0,
+  "windows": [
+    {
+      "bundle": "com.huawei.hmos.settings",
+      "ability": "com.huawei.hmos.settings.MainAbility",
+      "page": "pages/home/SettingsHome",
+      "kind": "app",
+      "bounds": [0,117,1320,2120],
+      "root": {
+        "cls": "NavDestination",
+        "raw": "NavDestination",
+        "viewId": "Setting.Fusion",
+        "bounds": [0,117,1320,2120],
+        "children": [
+          {
+            "cls": "HdsTitleBar",
+            "raw": "HdsTitleBar",
+            "viewId": "HdsTitleBar",
+            "bounds": [0,117,1320,285],
+            "children": [
+              {
+                "cls": "android.widget.Button",
+                "raw": "Button",
+                "role": "button",
+                "bounds": [48,141,168,261],
+                "flags": [
+                  "click"
+                ]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "Text",
+                "text": "星闪和蓝牙",
+                "viewId": "Setting.Fusion.title_id",
+                "bounds": [192,166,492,236]
+              },
+              {
+                "cls": "HdsMenuNode",
+                "raw": "HdsMenuNode",
+                "bounds": [1152,117,1272,285],
+                "children": [
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "Button",
+                    "role": "button",
+                    "viewId": "fusion_menu_button_id",
+                    "bounds": [1152,141,1272,261],
+                    "flags": [
+                      "click"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cls": "NavDestinationContent",
+            "raw": "NavDestinationContent",
+            "bounds": [0,117,1320,2120],
+            "children": [
+              {
+                "cls": "Column",
+                "raw": "Column",
+                "bounds": [0,285,1320,939],
+                "children": [
+                  {
+                    "cls": "android.widget.TextView",
+                    "raw": "Text",
+                    "text": "星闪将带来更稳定连接，建议华为设备使用星闪连接方式。",
+                    "desc": "标题",
+                    "bounds": [84,356,1236,405]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "role": "switch",
+                    "text": "星闪",
+                    "viewId": "Setting.Fusion.NearlinkSwitchGroup.NearlinkSwitchItem",
+                    "bounds": [60,465,1260,609],
+                    "flags": [
+                      "click",
+                      "check",
+                      "checked",
+                      "focused"
+                    ],
+                    "children": [
+                      {
+                        "cls": "Row",
+                        "raw": "Row",
+                        "bounds": [84,465,1236,609]
+                      }
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "role": "switch",
+                    "text": "蓝牙",
+                    "viewId": "Setting.Fusion.BluetoothSwitchGroup.BluetoothSwitchItem",
+                    "bounds": [60,669,1260,813],
+                    "flags": [
+                      "click",
+                      "check",
+                      "checked"
+                    ],
+                    "children": [
+                      {
+                        "cls": "Row",
+                        "raw": "Row",
+                        "bounds": [84,669,1236,813]
+                      }
+                    ]
+                  },
+                  {
+                    "cls": "androidx.recyclerview.widget.RecyclerView",
+                    "raw": "Scroll",
+                    "bounds": [84,849,1236,939],
+                    "flags": [
+                      "scroll"
+                    ],
+                    "children": [
+                      {
+                        "cls": "android.widget.TextView",
+                        "raw": "Text",
+                        "text": "可被附近的设备发现为“测试机”，修改设备名称",
+                        "bounds": [84,849,1236,891],
+                        "flags": [
+                          "click"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "cls": "androidx.recyclerview.widget.RecyclerView",
+                "raw": "List",
+                "bounds": [0,939,1320,2120],
+                "flags": [
+                  "scroll"
+                ],
+                "children": [
+                  {
+                    "cls": "android.widget.TextView",
+                    "raw": "Text",
+                    "text": "已配对设备",
+                    "desc": "标题",
+                    "bounds": [84,986,1236,1035]
+                  },
+                  {
+                    "cls": "ListItemGroup",
+                    "raw": "ListItemGroup",
+                    "viewId": "Setting.Fusion.BondDeviceGroup",
+                    "bounds": [48,1059,1272,1445],
+                    "children": [
+                      {
+                        "cls": "android.view.View",
+                        "raw": "Row",
+                        "text": "BT-01",
+                        "viewId": "Setting.Fusion.BondDeviceGroup.1793643766110308ABF",
+                        "bounds": [60,1071,1260,1263],
+                        "flags": [
+                          "click"
+                        ],
+                        "children": [
+                          {
+                            "cls": "Column",
+                            "raw": "Column",
+                            "bounds": [205,1112,1044,1223],
+                            "children": [
+                              {
+                                "cls": "android.widget.TextView",
+                                "raw": "Text",
+                                "text": "已连接",
+                                "viewId": "Setting.Fusion.BondDeviceGroup.1793643766110308ABF.desp",
+                                "bounds": [205,1174,332,1223]
+                              }
+                            ]
+                          },
+                          {
+                            "cls": "android.widget.ImageView",
+                            "raw": "SymbolGlyph",
+                            "role": "image",
+                            "bounds": [1164,1131,1236,1203],
+                            "flags": [
+                              "click"
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "cls": "android.view.View",
+                        "raw": "Row",
+                        "text": "BT-02",
+                        "viewId": "Setting.Fusion.BondDeviceGroup.17936437661145CD8FA",
+                        "bounds": [60,1265,1260,1433],
+                        "flags": [
+                          "click"
+                        ],
+                        "children": [
+                          {
+                            "cls": "android.widget.ImageView",
+                            "raw": "SymbolGlyph",
+                            "role": "image",
+                            "bounds": [1164,1313,1236,1385],
+                            "flags": [
+                              "click"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "cls": "android.widget.TextView",
+                    "raw": "Text",
+                    "text": "其他设备",
+                    "desc": "标题",
+                    "bounds": [84,1528,1063,1585]
+                  },
+                  {
+                    "cls": "ListItemGroup",
+                    "raw": "ListItemGroup",
+                    "viewId": "Setting.Fusion.AvailableDeviceGroup",
+                    "bounds": [48,1613,1272,2120],
+                    "children": [
+                      {
+                        "cls": "android.view.View",
+                        "raw": "Row",
+                        "text": "BT-03",
+                        "viewId": "Setting.Fusion.AvailableDeviceGroup.179364376675314D8D1",
+                        "bounds": [60,1625,1260,1793],
+                        "flags": [
+                          "click"
+                        ]
+                      },
+                      {
+                        "cls": "android.view.View",
+                        "raw": "Row",
+                        "text": "BT-04",
+                        "viewId": "Setting.Fusion.AvailableDeviceGroup.179364376643170197B",
+                        "bounds": [60,1795,1260,1963],
+                        "flags": [
+                          "click"
+                        ]
+                      },
+                      {
+                        "cls": "android.view.View",
+                        "raw": "Row",
+                        "text": "BT-05",
+                        "viewId": "Setting.Fusion.AvailableDeviceGroup.1793643766447A06C39",
+                        "bounds": [60,1965,1260,2120],
+                        "flags": [
+                          "click"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "bundle": "com.ohos.sceneboard",
+      "ability": "",
+      "page": "",
+      "kind": "system",
+      "bounds": [0,0,1320,174],
+      "root": {
+        "cls": "WindowScene",
+        "raw": "WindowScene",
+        "viewId": "session33",
+        "bounds": [0,0,1320,174],
+        "children": [
+          {
+            "cls": "android.view.View",
+            "raw": "__Common__",
+            "text": "02, :, 22",
+            "viewId": "StatusBarBridgeView",
+            "bounds": [0,0,1320,174],
+            "flags": [
+              "click",
+              "long"
+            ],
+            "children": [
+              {
+                "cls": "Row",
+                "raw": "Row",
+                "text": "02, :, 22",
+                "desc": "长按时间切换显示格式",
+                "bounds": [56,22,177,94],
+                "flags": [
+                  "long"
+                ],
+                "children": [
+                  {
+                    "cls": "android.widget.TextView",
+                    "raw": "Text",
+                    "text": ":",
+                    "viewId": "TimeView_Text_timeText",
+                    "bounds": [110,36,123,81]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "nodes": 33,
+  "truncated": false
+}

@@ -8,7 +8,7 @@ Let DSH read the screen, tap and type to get things done on your phone. Pause or
 `Settings › Phone control` · [Open](dshgo://open/phone)
 
 1. Turn on the switch at the top. The first time, you'll see what's read and where it goes; tap **Agree**. Turning it on or off restarts a running engine, interrupting any reply in progress.
-2. Under **Setup**, tap **Turn on** next to **Accessibility service**, and turn on "DSH Phone Control" in Android's accessibility settings. If the switch won't turn on for a sideloaded app, tap **Accessibility switch disabled?** for brand-specific steps to allow restricted settings.
+2. Under **Setup**, tap **Turn on** next to **Accessibility service**, and turn on "DSH Phone Control" in Android's accessibility settings. If the switch won't turn on for a sideloaded app, tap **Accessibility switch disabled?** for brand-specific steps to allow restricted settings. The HarmonyOS container has no such step: the first row under **Setup** is **Mac relay**; see "HarmonyOS container: through a Mac" below.
 3. Tap **Turn on** next to **Notifications** and allow notifications in App info. Approvals and the stop button need them.
 4. Tap **Read current screen** to see what DSH can read. This reading isn't sent to the model.
 
@@ -58,6 +58,7 @@ Whatever the settings, the bar closes when the reply ends.
 - **Stop** on the floating bar, or hold the ball for a second.
 - **Stop** on the "Operating your phone" card on the phone control page.
 - **Stop actions** on the engine notification. **Stop** on the same notification stops the whole engine.
+- In the container you can also run `dsh-relay halt` in the Mac's terminal to stop everything on the Mac at once; `dsh-relay resume` continues.
 
 Stopping phone control also stops every reply in progress on this phone's engine.
 
@@ -112,6 +113,63 @@ Disclaimer:
 - Any resulting loss to your accounts, money, data or device is yours to bear. DSH Go and its developers accept no liability.
 - Turn it on only when you need it, and off when you're done.
 - We advise against turning it on for a device that holds payment or banking details.
+
+## HarmonyOS container: through a Mac
+
+<!-- nav: commonSettings,hubSettingsPhoneControl,phoneRelayTitle -->
+`Settings › Phone control › Mac relay` · [Open](dshgo://open/phone-relay)
+
+The container has no accessibility service and no floating bar over HarmonyOS screens. Reading the screen, tapping and typing are done by a relay (`dsh-relay`) on your Mac, through Huawei's own `hdc`; DSH Go talks only to the relay. The phone and the Mac must be on the same network (LAN or Tailscale), and the Mac must be on.
+
+### Install the relay on the Mac
+
+The steps are the eight in the repository's `tooling/dsh-relay/README.md`, "launchd 验收清单":
+
+1. Start the service in the foreground; in another terminal, `curl -sk --tls-max 1.2 https://127.0.0.1:8731/v1/ping` returns `{"service":"dsh-relay","v":1}`. Then quit it.
+2. If macOS asks to find and connect to devices on the local network while it runs, allow it.
+3. Run `./install.sh --label com.albert.dsh-relay` to install the relay as a service that stays up after login.
+4. `launchctl list com.albert.dsh-relay` shows a process, and `dsh-relay doctor` passes everything.
+5. With wireless debugging on, run `dsh-relay target set <phone IP>:<port>`, unplug USB, and `dsh-relay status` shows device state `ok` over `tcp`.
+6. Pair on the phone and **Test connection** (next paragraph).
+7. After `launchctl bootout gui/$(id -u)/com.albert.dsh-relay`, the phone reports within 5 seconds that it can't reach the relay; after `launchctl bootstrap`, the next call works again.
+8. If either direction fails: System Settings → Privacy & Security → Local Network, tick node and hdc.
+
+### Pair
+
+1. In the Mac's terminal, run `dsh-relay pair`. It shows the Mac's address and a one-time code, valid for 5 minutes and 5 attempts, void once pairing succeeds.
+2. On the phone, open **Mac relay** (the first row under **Setup**, or the link above), enter the Mac address and the code, tap **Pair**, then **Test connection**.
+3. A passing test shows the phone model, USB or wireless debugging, and the app in front.
+
+The code is typed once, in this one field: it is hidden as you type, can't be copied or pasted, and is never saved, logged or sent into a conversation. The token that pairing yields lives only in DSH Go's private files, never in a conversation or on the clipboard.
+
+### What it can do
+
+Read screen text, tap, type, swipe and open apps, under the same Confirmation, App rules and **Lift limits** as on Android. HarmonyOS Settings, Permission manager, Privacy center and Security guard count as system pages and stay with you by default; to let DSH work in Settings, first turn on **System settings** under **Lift limits**. The container has no **Non-disruptive mode** and no floating bar; approvals go through notifications, and when those are unavailable DSH Go tries to come to the front with the approval card.
+
+### States
+
+The note at the top of the **Mac relay** page is one of these eight:
+
+| State | Meaning | What to do |
+|---|---|---|
+| Connected | The Mac and the phone are both online | Give a task in the conversation |
+| Can't reach the Mac | The phone can't reach the relay on the Mac | Check the Mac is on, `dsh-relay status` is fine, same network; tap **Test connection** |
+| Pair again | The Mac no longer accepts this phone (access revoked or certificate changed) | `dsh-relay pair` on the Mac for a new code, then **Pair again** |
+| Paused | `dsh-relay halt` was run on the Mac | `dsh-relay resume` on the Mac; no need to pair again |
+| Mac is online, phone is not | The relay is up but hdc can't reach the phone | Plug in USB, or **Update wireless debugging address** |
+| Phone hasn't allowed this Mac | The phone hasn't approved debugging from this Mac | Tap Allow on the phone's screen |
+| Phone is locked | Nothing runs while it is locked | Unlock the phone |
+| Not paired yet | This phone has never paired with a Mac | Pair as above |
+
+Wireless debugging may pick a new port each time it is turned on. When it changes, tap **Update wireless debugging address** on the **Mac relay** page and enter the `ip:port` shown on the phone's wireless debugging page. With USB plugged in the relay prefers USB, so nothing changes.
+
+### When the Mac is offline
+
+If the Mac is off, asleep or the relay isn't running, DSH's phone calls get "can't reach the Mac relay" within 5 seconds, the phone shows a notification and the page's state becomes **Can't reach the Mac**. Once the Mac is back the next call just works; the engine needn't restart. After the phone has been locked for over 60 seconds on wireless debugging alone, the first screen read may time out and then recover when the relay reconnects.
+
+### Stop and revoke
+
+**Stop the relay** makes the Mac stop everything at once; run `dsh-relay resume` on the Mac to continue. **Forget this Mac** only removes the pairing from the phone; revoke the Mac's entry separately with `dsh-relay revoke`.
 
 ## Action log and advanced
 

@@ -15,12 +15,14 @@ object ProtectedPages {
         "com.iqoo.secure", "com.vivo.permissionmanager", "com.vivo.safecenter",
         "com.huawei.systemmanager", "com.hihonor.systemmanager", "com.huawei.securitymgr",
         "com.android.settings.intelligence",
+        "com.ohos.permissionmanager", "com.huawei.hmos.security.privacycenter", "com.huawei.hmos.securityguardassistant",
     )
 
     /** Settings apps: protected only on the pages whose title matches [titleWords]. */
     val settingsPackages: Set<String> = setOf(
         "com.android.settings", "com.miui.settings", "com.coloros.settings", "com.oplus.settings",
         "com.vivo.settings", "com.huawei.settings", "com.hihonor.settings", "com.samsung.android.settings",
+        "com.huawei.hmos.settings",
     )
 
     val titleWords: List<String> = listOf(

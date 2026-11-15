@@ -1,0 +1,15 @@
+# 来源：本项目新写。
+# 为什么：配合 0004，host toolset 的 OS 被改成 mac 后，这里 `OS != "mac"` 的分支不再给 ICU 工具加 -frtti，
+# 而 common.gypi 仍按 OS=android 给 -fno-rtti，xmlparser.cpp 的 dynamic_cast 编不过。去掉 mac 排除，
+# 对 clang 无副作用（-frtti 是 ICU 本来就要的）。
+--- a/tools/icu/icu-generic.gyp
++++ b/tools/icu/icu-generic.gyp
+@@ -50,7 +50,7 @@
+       'type': 'none',
+       'direct_dependent_settings': {
+         'conditions': [
+-          [ 'os_posix == 1 and OS != "mac" and OS != "ios"', {
++          [ 'os_posix == 1', {
+             'cflags': [ '-Wno-deprecated-declarations', '-Wno-strict-aliasing' ],
+             'cflags_cc': [ '-frtti' ],
+             'cflags_cc!': [ '-fno-rtti' ],

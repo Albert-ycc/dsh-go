@@ -134,6 +134,11 @@ object SafetyRules {
         "com.samsung.android.lool", "com.samsung.android.sm", "com.samsung.accessibility",
         "com.google.android.marvin.talkback",
         "com.android.keychain", "com.android.vpndialogs", "com.android.certinstaller",
+        // HarmonyOS（卓易通）：设置、权限、隐私中心、安全卫士、安全访问围栏。桌面（com.ohos.sceneboard）不是敏感页，不在此列。
+        "com.huawei.hmos.settings", "com.ohos.permissionmanager", "com.huawei.hmos.security.privacycenter",
+        "com.huawei.hmos.securityguardassistant", "com.huawei.hmos.secureaccessfence",
+        // 下拉通知与控制中心的承载 bundle（待真机下拉后 dump 核对，P4 第 4 条未决项）。
+        "com.ohos.systemui",
     )
 
     fun isSystemPackage(pkg: String?): Boolean = pkg != null && pkg in SYSTEM_PACKAGES
@@ -151,10 +156,13 @@ object SafetyRules {
         // brokers
         "com.hexin.plat.android", "com.eastmoney.android.berlin", "com.lphtsccft", "com.xueqiu.android",
         "cn.futu.trader", "com.tigerbrokers.stock",
+        // HarmonyOS 原生：华为钱包（P2-a 别名表里的 bundle）。支付宝鸿蒙版 bundle 名待 `bm dump -a` 核对（P4 M3）。
+        "com.huawei.hmos.wallet", "com.alipay.mobile.client",
     )
 
     /** WeChat: readable, every write confirmed. */
-    val DEFAULT_CONFIRM_EVERY_WRITE = listOf("com.tencent.mm")
+    // 鸿蒙版微信 bundle 名待 `bm dump -a` 核对（P4 M3）。
+    val DEFAULT_CONFIRM_EVERY_WRITE = listOf("com.tencent.mm", "com.tencent.wechat")
 
     fun quoteText(text: String, max: Int = 60): String {
         val t = text.replace('\n', ' ').trim()
@@ -177,6 +185,8 @@ class SafetyGate(
     private val gate: () -> UserGate?,
     private val ownPackage: String = SafetyRules.OWN_PACKAGE,
     private val uiText: PhoneUiText = PhoneUiText.DEFAULT,
+    /** Mac 手：系统页里连滚动也拒绝；a11y 手保持原行为（滚动一律放行）。 */
+    private val strictScroll: () -> Boolean = { false },
 ) {
     sealed interface Verdict {
         object Allow : Verdict
@@ -230,11 +240,13 @@ class SafetyGate(
         val lifted = p.unlocks
         if (pkg == ownPackage && !lifted.ownApp) return Verdict.Refuse(OWN_APP, "own-app")
         if (pkg != null && pkg in p.denyPackages) return Verdict.Refuse(denied(app), "deny-list")
-        if (kind == WriteKind.SCROLL) return Verdict.Allow
+        if (kind == WriteKind.SCROLL && !strictScroll()) return Verdict.Allow
+        // Mac 手：系统页先于滚动放行，锁屏上滑即解锁、系统页里滚动也不代做（P4 H2）。
         if (SafetyRules.isSystemPackage(pkg) && !lifted.systemPages) {
             // l10n:keep agent safety result
             return Verdict.Refuse("系统设置 / 权限 / 安装页（「$app」）只看不动。请 handoff 让用户自己完成。", "system-page")
         }
+        if (kind == WriteKind.SCROLL) return Verdict.Allow
         val secret = SafetyRules.isSecretTarget(target)
         if (secret && !lifted.secretFields) {
             // l10n:keep agent safety result

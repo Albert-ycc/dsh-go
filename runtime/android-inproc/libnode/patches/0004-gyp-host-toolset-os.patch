@@ -1,0 +1,26 @@
+# 来源：本项目新写（Termux 在 Linux 宿主上编，没有这个问题）。
+# 为什么：在 macOS 上交叉编 OS=android 时，GYP_DEFINES 里的 OS=android 同样套给 host toolset，
+# libuv 的 host 副本会去编 unix/linux.c 并找不到 <netpacket/packet.h>。设 GYP_HOST_OS=mac 后
+# host 目标的 conditions 按 mac 求值；不设该环境变量时行为不变（Linux 宿主不受影响）。
+--- a/tools/gyp/pylib/gyp/input.py
++++ b/tools/gyp/pylib/gyp/input.py
+@@ -1295,6 +1295,10 @@
+     # loading of automatics and the loading of the variables dict.
+     variables = variables_in.copy()
+     LoadAutomaticVariablesFromDict(variables, the_dict)
++    # 在 macOS 上交叉编 OS=android：host toolset 的 conditions 要按宿主系统求值，
++    # 否则 libuv、V8 的 host 工具会拿 Linux/Android 的源码列表和头文件去编。
++    if variables.get("_toolset") == "host" and os.environ.get("GYP_HOST_OS"):
++        variables["OS"] = os.environ["GYP_HOST_OS"]
+ 
+     if "variables" in the_dict:
+         # Make sure all the local variables are added to the variables
+@@ -1334,6 +1338,8 @@
+     variables = variables_in.copy()
+     LoadAutomaticVariablesFromDict(variables, the_dict)
+     LoadVariablesFromVariablesDict(variables, the_dict, the_dict_key)
++    if variables.get("_toolset") == "host" and os.environ.get("GYP_HOST_OS"):
++        variables["OS"] = os.environ["GYP_HOST_OS"]
+ 
+     # Process conditions in this dict.  This is done after variable expansion
+     # so that conditions may take advantage of expanded variables.  For example,

@@ -101,6 +101,13 @@ object CrashClassifier {
         Regex("^Error \\[ERR_MODULE_NOT_FOUND]: Cannot find module ['\"].*/opt/dsh-go/direct/(?:preload|dns|paths|processes|modules)\\.mjs['\"].*$"),
         Regex("^DshDirectModuleIdentityError: this file needs compatible launch; stop the engine and turn off Direct engine$"),
     )
+    // bionic engine: the shell or the linker could not start the Node executable (wording to be
+    // calibrated on a phone by smoke S1); a plugin's generic error is not launch evidence.
+    private val BIONIC_FAILED = listOf(
+        Regex("^CANNOT LINK EXECUTABLE.*"),
+        Regex("^(?:/system/bin/)?sh: .*(?:inaccessible or not found|Permission denied|Exec format error)$"),
+    )
+
     /**
      * 128 + SIGSYS: Android's seccomp filter killed the direct loader or node for a
      * syscall it forbids (glibc's `access` on x86_64). The kill prints nothing.
@@ -131,15 +138,18 @@ object CrashClassifier {
         tail: List<String>,
         safeMode: Boolean,
         directEngine: Boolean = false,
+        /** The run was the bionic Node child (see [BionicProcess]); neither PRoot nor Direct evidence applies. */
+        bionic: Boolean = false,
     ): RunFailure {
         // V8 running out of heap while starting or just after counts like a DSH fatal (#75);
         // later it stays KILLED, which restarts. Neither names a culprit plugin.
         val early = exitCode != 0 && (readyAt == null || now - readyAt <= EARLY_WINDOW_MS)
         val fatal = tail.firstOrNull(::isFatal) ?: tail.firstOrNull { HEAP_OOM.matches(it) }?.takeIf { early }
         val launch = if (readyAt == null && exitCode != 0) tail.firstOrNull {
-            EXEC_FAILED.matches(it) || (!directEngine && PROOT_EXEC_FAILED.matches(it)) ||
+            if (bionic) BIONIC_FAILED.any { pattern -> pattern.matches(it) }
+            else EXEC_FAILED.matches(it) || (!directEngine && PROOT_EXEC_FAILED.matches(it)) ||
                 (directEngine && DIRECT_FAILED.any { pattern -> pattern.matches(it) })
-        } ?: (if (directEngine && exitCode == SIGSYS_EXIT) SECCOMP_KILLED else null) else null
+        } ?: (if ((directEngine || bionic) && exitCode == SIGSYS_EXIT) SECCOMP_KILLED else null) else null
         val kind = when {
             tail.any { NO_SPACE.containsMatchIn(it) } -> FailureKind.NO_SPACE
             fatal == null && launch != null -> FailureKind.LAUNCH_FAILED
@@ -163,7 +173,10 @@ object CrashClassifier {
             at = wallClock,
             safeMode = safeMode,
             summary = fatal?.let(::summarize)
-                ?: (if (kind == FailureKind.LAUNCH_FAILED) launch else tail.lastOrNull { NO_SPACE.containsMatchIn(it) })
+                ?: (if (kind == FailureKind.LAUNCH_FAILED) launch
+                    else tail.lastOrNull { NO_SPACE.containsMatchIn(it) }
+                        // After ready the kill stays KILLED (a restart is the remedy), but says what killed it.
+                        ?: (if (bionic && kind == FailureKind.KILLED && exitCode == SIGSYS_EXIT) SECCOMP_KILLED else null))
                     ?.let(::summarize),
             requiredRows = required.toList(),
             suspects = suspects.toList(),

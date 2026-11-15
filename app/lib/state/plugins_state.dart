@@ -243,7 +243,8 @@ typedef _OfficialCopy = ({String index, String? indexTag, String sidecar, String
 
 Future<_OfficialCopy?> _readOfficialCopy() async {
   try {
-    final json = jsonDecode((await SharedPreferences.getInstance()).getString(_officialCopyKey)!) as Map<String, Object?>;
+    final json =
+        jsonDecode((await SharedPreferences.getInstance()).getString(_officialCopyKey)!) as Map<String, Object?>;
     return (
       index: json['index']! as String,
       indexTag: json['indexTag'] as String?,
@@ -1448,6 +1449,18 @@ class PluginInstallJob {
   );
 }
 
+/// A spec pnpm resolves through git: `git+…`, `github:owner/repo`, a bare
+/// `owner/repo`, a `.git` URL, or scp-style `git@host:path`.
+bool isGitPluginSpec(String spec) {
+  final s = spec.trim().toLowerCase();
+  return s.startsWith('git+') ||
+      s.startsWith('git://') ||
+      s.startsWith('git@') ||
+      RegExp(r'^(github|gitlab|bitbucket|gist):').hasMatch(s) ||
+      RegExp(r'^https?://.*\.git(#.*)?$').hasMatch(s) ||
+      RegExp(r'^[a-z0-9._-]+/[a-z0-9._-]+(#.*)?$').hasMatch(s);
+}
+
 /// Per-plugin installs on the active host, run one at a time (DSH holds a
 /// profile lock anyway). Keyed by package name.
 class PluginInstallsController extends Notifier<Map<String, PluginInstallJob>> {
@@ -1480,6 +1493,20 @@ class PluginInstallsController extends Notifier<Map<String, PluginInstallJob>> {
     final host = _host;
     final running = state[request.name];
     if (running != null && running.isActive) return _waitFor(running.requestId);
+    // 卓易通's runtime has no git: say why before any attempt, whichever
+    // screen the request came from (market, share code, plugin sheet).
+    if ((host?.isLocal ?? false) && isGitPluginSpec(request.spec) && ref.read(localRuntimeProvider).status.isBionic) {
+      final refused = PluginInstallJob(request: request, requestId: 'dsh-app-refused-${request.name}').copyWith(
+        phase: PluginInstallPhase.failed,
+        failure: PluginFailure(
+          PluginFailureKind.unsupported,
+          appL10n.pluginsInstallGitRefusedBionic,
+          appL10n.pluginsInstallGitRefusedBionicHint,
+        ),
+      );
+      _put(refused);
+      return Future.value(refused);
+    }
     final job = PluginInstallJob(
       request: request,
       requestId: 'dsh-app-${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 32)}',

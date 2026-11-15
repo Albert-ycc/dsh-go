@@ -1,0 +1,16 @@
+# 来源：本项目新写（Termux 链接系统 zlib，所以没遇到；P0A 3.2 表「common.gypi」行预判过 cpufeatures 需要 NDK 里有）。
+# 为什么：Node 自带的 Chromium 版 zlib 在 ARMV8_OS_ANDROID 下调 android_getCpuFeatures()，
+# gyp 里没人提供实现，链接时未定义符号。build-libnode.sh 先把 NDK 的 sources/android/cpufeatures/cpu-features.c
+# 拷成 deps/zlib/ndk_cpu_features.c，这里把它编进 zlib_arm_crc32。
+# 不直接写 NDK 绝对路径：gyp 会把绝对路径源文件的目标路径拼成 obj/<dir>//abs/path.o，make 找不到规则。
+--- a/deps/zlib/zlib.gyp
++++ b/deps/zlib/zlib.gyp
+@@ -74,6 +74,8 @@
+                 }],
+                 ['OS=="android"', {
+                   'defines': [ 'ARMV8_OS_ANDROID' ],
++                  # zlib/cpu_features.c 在 Android 上调 android_getCpuFeatures()，实现在 NDK 的 cpufeatures 源里，构建脚本把它拷成同目录的 ndk_cpu_features.c（gyp 会把绝对路径源文件的目标路径拼歪）
++                  'sources': [ 'ndk_cpu_features.c' ],
+                 }],
+                 ['OS=="linux" or OS=="openharmony"', {
+                   'defines': [ 'ARMV8_OS_LINUX' ],

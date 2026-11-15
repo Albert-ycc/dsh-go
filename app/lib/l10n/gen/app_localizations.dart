@@ -10334,6 +10334,132 @@ abstract class L10n {
   /// **'{count} 项'**
   String engineSettingsGroupCount(int count);
 
+  /// No description provided for @engineFamilyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'运行环境类型'**
+  String get engineFamilyTitle;
+
+  /// No description provided for @engineFamilyAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'自动'**
+  String get engineFamilyAuto;
+
+  /// No description provided for @engineFamilyAutoHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'按这台手机的情况选择，推荐。'**
+  String get engineFamilyAutoHint;
+
+  /// No description provided for @engineFamilyForceGlibc.
+  ///
+  /// In zh, this message translates to:
+  /// **'强制 glibc'**
+  String get engineFamilyForceGlibc;
+
+  /// No description provided for @engineFamilyGlibcHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'标准 Linux 环境，功能完整。部分手机（例如鸿蒙卓易通）的系统会拦截，启动不了。'**
+  String get engineFamilyGlibcHint;
+
+  /// No description provided for @engineFamilyForceBionic.
+  ///
+  /// In zh, this message translates to:
+  /// **'强制 bionic'**
+  String get engineFamilyForceBionic;
+
+  /// No description provided for @engineFamilyBionicHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'直接用手机系统自带的库运行，供鸿蒙卓易通使用。里面没有 git、python，部分功能不可用。'**
+  String get engineFamilyBionicHint;
+
+  /// No description provided for @engineFamilyBionicMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'这台手机没有 bionic 运行包。'**
+  String get engineFamilyBionicMissing;
+
+  /// No description provided for @engineFamilyStopFirst.
+  ///
+  /// In zh, this message translates to:
+  /// **'请先停止本机引擎，再切换运行环境。'**
+  String get engineFamilyStopFirst;
+
+  /// No description provided for @engineFamilyChangeFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'未能切换运行环境，请停止本机引擎后重试。'**
+  String get engineFamilyChangeFailed;
+
+  /// No description provided for @engineFamilyCurrent.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前运行环境'**
+  String get engineFamilyCurrent;
+
+  /// No description provided for @engineFamilyGlibcName.
+  ///
+  /// In zh, this message translates to:
+  /// **'glibc（标准 Linux）'**
+  String get engineFamilyGlibcName;
+
+  /// No description provided for @engineFamilyBionicName.
+  ///
+  /// In zh, this message translates to:
+  /// **'bionic（手机系统库）'**
+  String get engineFamilyBionicName;
+
+  /// No description provided for @engineFamilyReasonLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'判定原因'**
+  String get engineFamilyReasonLabel;
+
+  /// No description provided for @engineFamilyReasonOverride.
+  ///
+  /// In zh, this message translates to:
+  /// **'你在上面手动指定了'**
+  String get engineFamilyReasonOverride;
+
+  /// No description provided for @engineFamilyReasonFallback.
+  ///
+  /// In zh, this message translates to:
+  /// **'glibc 启动时被系统终止，已自动改用 bionic；App 带来新的运行环境后会再试一次 glibc'**
+  String get engineFamilyReasonFallback;
+
+  /// No description provided for @engineFamilyReasonSeLinux.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统的安全策略限制了标准 Linux 环境'**
+  String get engineFamilyReasonSeLinux;
+
+  /// No description provided for @engineFamilyReasonProbe.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统拦截了标准 Linux 环境启动所必需的系统调用'**
+  String get engineFamilyReasonProbe;
+
+  /// No description provided for @engineFamilyReasonDefault.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有发现限制，使用标准 Linux 环境'**
+  String get engineFamilyReasonDefault;
+
+  /// No description provided for @engineFamilyIndependentNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'切换运行环境后，对话、插件和设置各自独立，不会迁移。回退到 bionic 后，原来的 glibc 运行环境仍占用存储，需要时用「重置运行环境」清理。'**
+  String get engineFamilyIndependentNote;
+
+  /// No description provided for @engineFamilyGlibcMissing.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个安装包没有 glibc 运行包。'**
+  String get engineFamilyGlibcMissing;
+
   /// No description provided for @featuresCordisSubtitle.
   ///
   /// In zh, this message translates to:
@@ -18128,6 +18254,30 @@ abstract class L10n {
   /// **'在系统「无线调试」首页查看「IP 地址和端口」，填写冒号后的端口。请不要使用配对码页面的端口。'**
   String get phoneDndConnectPortHint;
 
+  /// No description provided for @phoneLaunchBionic.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统库启动'**
+  String get phoneLaunchBionic;
+
+  /// No description provided for @phoneBionicLimits.
+  ///
+  /// In zh, this message translates to:
+  /// **'这台手机的运行环境里没有 git 和 python，所以以下功能在 bionic 下不可用：从 Git 安装插件、依赖 python 的插件和技能、带原生组件的第三方插件、本地语音识别、终端、Office 转 PDF。'**
+  String get phoneBionicLimits;
+
+  /// No description provided for @phoneBionicVoiceUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'这台手机的运行环境里没有本地语音识别需要的组件，本地语音模型不可用。'**
+  String get phoneBionicVoiceUnavailable;
+
+  /// No description provided for @phoneBionicTerminalUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'这台手机的运行环境里没有终端需要的组件，本机引擎的终端不可用。'**
+  String get phoneBionicTerminalUnavailable;
+
   /// No description provided for @phoneTaskResultReady.
   ///
   /// In zh, this message translates to:
@@ -18331,6 +18481,534 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'没连上；下次打开 App 或开始操控时再试'**
   String get phoneKeepFailed;
+
+  /// No description provided for @phoneRelayTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 中继'**
+  String get phoneRelayTitle;
+
+  /// No description provided for @phoneRelaySubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'卓易通里没有无障碍服务，手机操控经你的 Mac 完成'**
+  String get phoneRelaySubtitle;
+
+  /// No description provided for @phoneRelayStepGoPair.
+  ///
+  /// In zh, this message translates to:
+  /// **'去配对'**
+  String get phoneRelayStepGoPair;
+
+  /// No description provided for @phoneRelayStepGoFix.
+  ///
+  /// In zh, this message translates to:
+  /// **'去处理'**
+  String get phoneRelayStepGoFix;
+
+  /// No description provided for @phoneRelayStepOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'已连接 · {model}'**
+  String phoneRelayStepOk(String model);
+
+  /// No description provided for @phoneRelayStepOkNoModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'已连接'**
+  String get phoneRelayStepOkNoModel;
+
+  /// No description provided for @phoneRelayReadScreenFirst.
+  ///
+  /// In zh, this message translates to:
+  /// **'先完成 Mac 中继配对'**
+  String get phoneRelayReadScreenFirst;
+
+  /// No description provided for @phoneRelayStatusLine.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 中继：{state}'**
+  String phoneRelayStatusLine(String state);
+
+  /// No description provided for @phoneRelayStateOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'已连接'**
+  String get phoneRelayStateOk;
+
+  /// No description provided for @phoneRelayStateUnreachable.
+  ///
+  /// In zh, this message translates to:
+  /// **'连不上 Mac'**
+  String get phoneRelayStateUnreachable;
+
+  /// No description provided for @phoneRelayStateUnauthorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'需要重新配对'**
+  String get phoneRelayStateUnauthorized;
+
+  /// No description provided for @phoneRelayStateHalted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已暂停'**
+  String get phoneRelayStateHalted;
+
+  /// No description provided for @phoneRelayStateDeviceOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 在线，连不上手机'**
+  String get phoneRelayStateDeviceOffline;
+
+  /// No description provided for @phoneRelayStateDeviceUnauthorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机未授权这台 Mac'**
+  String get phoneRelayStateDeviceUnauthorized;
+
+  /// No description provided for @phoneRelayStateLocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机已锁屏'**
+  String get phoneRelayStateLocked;
+
+  /// No description provided for @phoneRelayStateUnconfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有配对'**
+  String get phoneRelayStateUnconfigured;
+
+  /// No description provided for @phoneRelayHintOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 和手机都在线。回到对话里说要做的事就行。'**
+  String get phoneRelayHintOk;
+
+  /// No description provided for @phoneRelayHintUnreachable.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机连不到 Mac 上的中继。确认 Mac 开着、中继在运行（Mac 终端运行 dsh-relay status）、手机和 Mac 在同一个网络里，然后点测试连接。'**
+  String get phoneRelayHintUnreachable;
+
+  /// No description provided for @phoneRelayHintUnauthorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 不认这部手机的配对了（授权被撤销，或中继的证书变了）。在 Mac 终端运行 dsh-relay pair 取新的配对码，再在下面重新配对。'**
+  String get phoneRelayHintUnauthorized;
+
+  /// No description provided for @phoneRelayHintHalted.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 上的中继被暂停，手机上的操作不会执行。在 Mac 终端运行 dsh-relay resume 即可恢复，不用重新配对。'**
+  String get phoneRelayHintHalted;
+
+  /// No description provided for @phoneRelayHintDeviceOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'中继在线，但 Mac 连不上这部手机。插上 USB，或在手机开着无线调试时点下面的「更新无线调试地址」。'**
+  String get phoneRelayHintDeviceOffline;
+
+  /// No description provided for @phoneRelayHintDeviceUnauthorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机还没有允许这台 Mac 调试。看一眼手机屏幕，在弹出的提示里点允许。'**
+  String get phoneRelayHintDeviceUnauthorized;
+
+  /// No description provided for @phoneRelayHintLocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'解锁手机后再下达任务。锁屏时不会执行任何操作。'**
+  String get phoneRelayHintLocked;
+
+  /// No description provided for @phoneRelayHintUnconfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'先在 Mac 上装好中继，再在下面配对。装法见用户指南「手机操控」。'**
+  String get phoneRelayHintUnconfigured;
+
+  /// No description provided for @phoneRelayPairTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对'**
+  String get phoneRelayPairTitle;
+
+  /// No description provided for @phoneRelayPairHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在 Mac 终端运行 dsh-relay pair。终端会显示 Mac 的地址和一次性配对码，5 分钟内有效。'**
+  String get phoneRelayPairHint;
+
+  /// No description provided for @phoneRelayAddrLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 地址'**
+  String get phoneRelayAddrLabel;
+
+  /// No description provided for @phoneRelayAddrHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'形如 192.0.2.10:8731'**
+  String get phoneRelayAddrHelper;
+
+  /// No description provided for @phoneRelayCodeLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对码'**
+  String get phoneRelayCodeLabel;
+
+  /// No description provided for @phoneRelayCodeHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'只在这里输入一次，不保存、不进剪贴板、不写日志'**
+  String get phoneRelayCodeHelper;
+
+  /// No description provided for @phoneRelayPair.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对'**
+  String get phoneRelayPair;
+
+  /// No description provided for @phoneRelayPairing.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在配对…'**
+  String get phoneRelayPairing;
+
+  /// No description provided for @phoneRelayPaired.
+  ///
+  /// In zh, this message translates to:
+  /// **'已配对'**
+  String get phoneRelayPaired;
+
+  /// No description provided for @phoneRelayDeviceTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前设备'**
+  String get phoneRelayDeviceTitle;
+
+  /// No description provided for @phoneRelayDeviceModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'机型'**
+  String get phoneRelayDeviceModel;
+
+  /// No description provided for @phoneRelayDeviceVia.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接方式'**
+  String get phoneRelayDeviceVia;
+
+  /// No description provided for @phoneRelayViaUsb.
+  ///
+  /// In zh, this message translates to:
+  /// **'USB'**
+  String get phoneRelayViaUsb;
+
+  /// No description provided for @phoneRelayViaTcp.
+  ///
+  /// In zh, this message translates to:
+  /// **'无线调试'**
+  String get phoneRelayViaTcp;
+
+  /// No description provided for @phoneRelayDeviceForeground.
+  ///
+  /// In zh, this message translates to:
+  /// **'前台应用'**
+  String get phoneRelayDeviceForeground;
+
+  /// No description provided for @phoneRelayDeviceUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'未知'**
+  String get phoneRelayDeviceUnknown;
+
+  /// No description provided for @phoneRelayLastOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'最近一次成功'**
+  String get phoneRelayLastOk;
+
+  /// No description provided for @phoneRelayNever.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有成功过'**
+  String get phoneRelayNever;
+
+  /// No description provided for @phoneRelayAddr.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 地址'**
+  String get phoneRelayAddr;
+
+  /// No description provided for @phoneRelayManageTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理'**
+  String get phoneRelayManageTitle;
+
+  /// No description provided for @phoneRelayTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试连接'**
+  String get phoneRelayTest;
+
+  /// No description provided for @phoneRelayTestHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'读一次手机屏幕，确认整条链路通了'**
+  String get phoneRelayTestHint;
+
+  /// No description provided for @phoneRelayTesting.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在测试…'**
+  String get phoneRelayTesting;
+
+  /// No description provided for @phoneRelayTestOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接正常 · {model}'**
+  String phoneRelayTestOk(String model);
+
+  /// No description provided for @phoneRelayTestOkNoModel.
+  ///
+  /// In zh, this message translates to:
+  /// **'连接正常'**
+  String get phoneRelayTestOkNoModel;
+
+  /// No description provided for @phoneRelayTarget.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新无线调试地址'**
+  String get phoneRelayTarget;
+
+  /// No description provided for @phoneRelayTargetHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机的无线调试端口变了时，填新的 ip:端口'**
+  String get phoneRelayTargetHint;
+
+  /// No description provided for @phoneRelayTargetLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'无线调试地址'**
+  String get phoneRelayTargetLabel;
+
+  /// No description provided for @phoneRelayTargetHelper.
+  ///
+  /// In zh, this message translates to:
+  /// **'形如 192.0.2.20:46225，在手机的无线调试页能看到'**
+  String get phoneRelayTargetHelper;
+
+  /// No description provided for @phoneRelayTargetDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'无线调试地址已更新'**
+  String get phoneRelayTargetDone;
+
+  /// No description provided for @phoneRelayHalt.
+  ///
+  /// In zh, this message translates to:
+  /// **'停止中继'**
+  String get phoneRelayHalt;
+
+  /// No description provided for @phoneRelayHaltHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'让 Mac 立即停下所有操作；要恢复，在 Mac 终端运行 dsh-relay resume'**
+  String get phoneRelayHaltHint;
+
+  /// No description provided for @phoneRelayHaltDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'已通知 Mac 暂停'**
+  String get phoneRelayHaltDone;
+
+  /// No description provided for @phoneRelayRepair.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新配对'**
+  String get phoneRelayRepair;
+
+  /// No description provided for @phoneRelayRepairHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'换了 Mac，或配对失效时用'**
+  String get phoneRelayRepairHint;
+
+  /// No description provided for @phoneRelayForget.
+  ///
+  /// In zh, this message translates to:
+  /// **'忘记这台 Mac'**
+  String get phoneRelayForget;
+
+  /// No description provided for @phoneRelayForgetHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'只删除这部手机上的配对'**
+  String get phoneRelayForgetHint;
+
+  /// No description provided for @phoneRelayForgetTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'忘记这台 Mac？'**
+  String get phoneRelayForgetTitle;
+
+  /// No description provided for @phoneRelayForgetBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'只会删除这部手机上的配对。Mac 上的授权还在，要撤销请在 Mac 终端运行 dsh-relay revoke。'**
+  String get phoneRelayForgetBody;
+
+  /// No description provided for @phoneRelayForgetConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'忘记'**
+  String get phoneRelayForgetConfirm;
+
+  /// No description provided for @phoneRelayForgot.
+  ///
+  /// In zh, this message translates to:
+  /// **'已忘记这台 Mac'**
+  String get phoneRelayForgot;
+
+  /// No description provided for @phoneRelayUpdate.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新'**
+  String get phoneRelayUpdate;
+
+  /// No description provided for @phoneRelayErrorBadAddress.
+  ///
+  /// In zh, this message translates to:
+  /// **'地址格式不对，应该是 ip:端口，例如 192.0.2.10:8731'**
+  String get phoneRelayErrorBadAddress;
+
+  /// No description provided for @phoneRelayErrorUnauthorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对码不对或已过期。回到 Mac 终端重新运行 dsh-relay pair，用新的配对码再试'**
+  String get phoneRelayErrorUnauthorized;
+
+  /// No description provided for @phoneRelayErrorPinMismatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'这台 Mac 没能证明自己就是配对码的发出方，已停止。确认地址没填错、网络可信后重试'**
+  String get phoneRelayErrorPinMismatch;
+
+  /// No description provided for @phoneRelayErrorRelayUnreachable.
+  ///
+  /// In zh, this message translates to:
+  /// **'连不上 Mac 上的中继。确认 Mac 开着、中继在运行、手机和 Mac 在同一个网络里'**
+  String get phoneRelayErrorRelayUnreachable;
+
+  /// No description provided for @phoneRelayErrorForbiddenSource.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 拒绝了这部手机的网络地址。检查手机和 Mac 是否在同一个局域网（或 Tailscale）里'**
+  String get phoneRelayErrorForbiddenSource;
+
+  /// No description provided for @phoneRelayErrorDeviceLocked.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机已锁屏，解锁后再试'**
+  String get phoneRelayErrorDeviceLocked;
+
+  /// No description provided for @phoneRelayErrorHalted.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 上的中继被暂停了。在 Mac 终端运行 dsh-relay resume'**
+  String get phoneRelayErrorHalted;
+
+  /// No description provided for @phoneRelayErrorDeviceOffline.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 连不上这部手机。插上 USB，或更新无线调试地址'**
+  String get phoneRelayErrorDeviceOffline;
+
+  /// No description provided for @phoneRelayErrorDeviceUnauthorized.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机还没有允许这台 Mac 调试，请在手机上点允许'**
+  String get phoneRelayErrorDeviceUnauthorized;
+
+  /// No description provided for @phoneRelayErrorDeviceTimeout.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机上的这一步超时了，稍后再试'**
+  String get phoneRelayErrorDeviceTimeout;
+
+  /// No description provided for @phoneRelayErrorBusy.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 上前面的操作还没结束，稍后再试'**
+  String get phoneRelayErrorBusy;
+
+  /// No description provided for @phoneRelayErrorUnconfigured.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有配对'**
+  String get phoneRelayErrorUnconfigured;
+
+  /// No description provided for @phoneRelayErrorUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'没有成功'**
+  String get phoneRelayErrorUnknown;
+
+  /// No description provided for @pluginsInstallGitRefusedBionic.
+  ///
+  /// In zh, this message translates to:
+  /// **'这台手机的运行环境里没有 git，不能从 Git 来源安装插件'**
+  String get pluginsInstallGitRefusedBionic;
+
+  /// No description provided for @pluginsInstallGitRefusedBionicHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'换成市场里的 npm 版本；没有 npm 版本的，在电脑上的 DSH 里安装。'**
+  String get pluginsInstallGitRefusedBionicHint;
+
+  /// No description provided for @searchKwPhoneRelay.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 中继,中继,卓易通,鸿蒙,配对,hdc,relay,harmony'**
+  String get searchKwPhoneRelay;
+
+  /// No description provided for @phoneRelayRowHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'卓易通上经 Mac 操作手机'**
+  String get phoneRelayRowHint;
+
+  /// No description provided for @phoneRelayStateStoreUnreadable.
+  ///
+  /// In zh, this message translates to:
+  /// **'配对已失效，请重新配对'**
+  String get phoneRelayStateStoreUnreadable;
+
+  /// No description provided for @phoneRelayHintStoreUnreadable.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机上保存的配对记录读不出来了（系统密钥变了或文件损坏）。在 Mac 终端运行 dsh-relay pair 取新的配对码，再在下面重新配对。'**
+  String get phoneRelayHintStoreUnreadable;
+
+  /// No description provided for @phoneRelayErrorStoreFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'手机没能保存配对记录（系统密钥不可用或写盘失败）。配对码还没有用掉，再试一次即可'**
+  String get phoneRelayErrorStoreFailed;
+
+  /// No description provided for @phoneRelayErrorBadArgs.
+  ///
+  /// In zh, this message translates to:
+  /// **'请求参数不对，请检查地址后重试'**
+  String get phoneRelayErrorBadArgs;
+
+  /// No description provided for @phoneRelayErrorInternal.
+  ///
+  /// In zh, this message translates to:
+  /// **'Mac 中继出了内部错误，稍后再试'**
+  String get phoneRelayErrorInternal;
 
   /// No description provided for @phoneModeTitle.
   ///

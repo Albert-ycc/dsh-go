@@ -52,6 +52,42 @@ void main() {
     appErrors: errors,
   );
 
+  test('the report names the runtime family, its saved choice and why', () {
+    final base = snapshot();
+    final text = diagnosticsMarkdown(
+      DiagnosticsSnapshot(
+        at: base.at,
+        status: RuntimeStatus(
+          phase: RuntimePhase.running,
+          engineFamily: 'bionic',
+          engineFamilyAvailable: true,
+          engineFamilyOverride: 'auto',
+          engineFamilyReason: 'fallback',
+        ),
+        settings: base.settings,
+        native: base.native,
+      ),
+    );
+    expect(text, contains('- 运行环境：bionic · 设置 auto · 原因 fallback'));
+    expect(diagnosticsMarkdown(base), contains('- 运行环境：glibc · 设置 auto · 无 bionic 包'));
+  });
+
+  test('the report carries the SELinux domain and the system fingerprint the family was decided on', () {
+    final base = snapshot();
+    final text = diagnosticsMarkdown(
+      DiagnosticsSnapshot(
+        at: base.at,
+        status: base.status,
+        settings: base.settings,
+        native: NativeDiagnostics(
+          engine: {'seLinuxDomain': 'u:r:aoco_untrusted_app_27:s0', 'fingerprint': 'HUAWEI/X/Y:16/ABC'},
+        ),
+      ),
+    );
+    expect(text, contains('SELinux 域 u:r:aoco_untrusted_app_27:s0 · 系统指纹 HUAWEI/X/Y:16/ABC'));
+    expect(diagnosticsMarkdown(base), contains('SELinux 域 — · 系统指纹 —'));
+  });
+
   test('the report has the sections a support skill needs', () {
     final text = diagnosticsMarkdown(snapshot());
     expect(text, contains('# DSH Go 本机诊断'));

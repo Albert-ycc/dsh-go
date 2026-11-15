@@ -49,7 +49,7 @@ typedef UiRootfsResolver = Future<Directory?> Function();
 
 final uiRootfsResolverProvider = Provider<UiRootfsResolver>(
   (ref) =>
-      () async => (await GuestFs.local())?.root,
+      () async => (await GuestFs.local(rootfs: ref.read(localRuntimeProvider).status.rootfs))?.root,
 );
 
 /// Makes the source for [host], using the caller's [ref] (so the config

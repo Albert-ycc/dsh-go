@@ -109,7 +109,11 @@ object SafeMode {
     private const val LEGACY_SAFE = "/usr/local/bin/dsh $SAFE_PROFILE_ARGS "
 
     /** Extra guest environment for safe starts only. */
-    val GUEST_ENV: Map<String, String> = linkedMapOf("DSH_AGENTS_HOME" to AGENTS_HOME, "DSH_APP_SAFE_MODE" to "1")
+    val GUEST_ENV: Map<String, String> = guestEnv()
+
+    /** [GUEST_ENV] with the guest paths mapped by [paths]. */
+    fun guestEnv(paths: GuestPaths = GuestPaths.IDENTITY): Map<String, String> =
+        linkedMapOf("DSH_AGENTS_HOME" to paths.path(AGENTS_HOME), "DSH_APP_SAFE_MODE" to "1")
 
     // l10n:keep agent repair briefing
     const val OVERLAY_YAML = """# dsh-app safe mode overlay (rewritten by the app on every safe start).
@@ -128,9 +132,9 @@ object SafeMode {
      * no profile (then it is used as is). A safe start whose template yields no rewrite must be
      * refused by the caller.
      */
-    fun profileArg(arg: String, safe: Boolean): String? {
+    fun profileArg(arg: String, safe: Boolean, paths: GuestPaths = GuestPaths.IDENTITY): String? {
         if (arg.contains(PROFILE_ARGS_PLACEHOLDER)) {
-            return arg.replace(PROFILE_ARGS_PLACEHOLDER, if (safe) SAFE_PROFILE_ARGS else NORMAL_PROFILE_ARGS)
+            return arg.replace(PROFILE_ARGS_PLACEHOLDER, if (safe) paths.text(SAFE_PROFILE_ARGS) else NORMAL_PROFILE_ARGS)
         }
         if (!safe) return null
         val first = arg.indexOf(LEGACY_NORMAL)
@@ -233,15 +237,17 @@ object SafeMode {
         /** Output around the failure, tokens already masked. */
         val failureLog: List<String>,
         val timeZone: TimeZone = TimeZone.getDefault(),
+        /** Where the bionic engine's Node executable is (it is not under `/opt/node`); null for the glibc world. */
+        val nodePath: String? = null,
     )
 
     /** Writes the overlay, the agent briefing, the failure data and the repair tool under [GUEST_DIR]. */
-    fun prepare(rootfs: File, briefing: Briefing) {
+    fun prepare(rootfs: File, briefing: Briefing, paths: GuestPaths = GuestPaths.IDENTITY) {
         val dir = realDir(guestFile(rootfs, GUEST_DIR))
         val agents = realDir(File(dir, "agents"))
         val bin = realDir(File(dir, "bin"))
-        writeAtomic(File(dir, "overlay.patch.yml"), OVERLAY_YAML)
-        writeAtomic(File(agents, "AGENTS.md"), renderBriefing(briefing))
+        writeAtomic(File(dir, "overlay.patch.yml"), paths.text(OVERLAY_YAML))
+        writeAtomic(File(agents, "AGENTS.md"), paths.text(renderBriefing(briefing)))
         writeAtomic(
             File(dir, "last-failure.log"),
             // l10n:keep agent repair briefing
@@ -257,7 +263,10 @@ object SafeMode {
             writeAtomic(lkgFile, json(mapOf("at" to briefing.lkgAt, "bundles" to briefing.lkgBundles, "versions" to briefing.lkgVersions)) + "\n")
         }
         val tool = File(bin, "dsh-app-plugins")
-        writeAtomic(tool, PLUGINS_SCRIPT)
+        // Android has no /usr/bin/env: under bionic the shebang names the PATH `node` wrapper BionicLaunch.prepare writes.
+        val script = if (paths.isIdentity) PLUGINS_SCRIPT
+        else PLUGINS_SCRIPT.replaceFirst("#!/usr/bin/env node", "#!${paths.rootfs}/${BionicLaunch.BIN_DIR}/node")
+        writeAtomic(tool, paths.text(script))
         tool.setReadable(true, false)
         tool.setExecutable(true, false)
     }
@@ -395,7 +404,7 @@ object SafeMode {
         // l10n:keep agent repair briefing
         appendLine("## 不要做")
         // l10n:keep agent repair briefing
-        appendLine("- 不要往 `$PROFILE` 装插件，不要改 `$GUEST_DIR/`、`/opt/dsh`、`/opt/node`：下次安全启动时它们会被重建或覆盖。")
+        appendLine("- 不要往 `$PROFILE` 装插件，不要改 `$GUEST_DIR/`、`/opt/dsh`、`${b.nodePath ?: "/opt/node"}`：下次安全启动时它们会被重建或覆盖。")
         // l10n:keep agent repair briefing
         appendLine("- 不要结束 `/tmp/dsh-web.pid` 里的进程（那就是你自己），不要 `pkill node`。")
         // l10n:keep agent repair briefing

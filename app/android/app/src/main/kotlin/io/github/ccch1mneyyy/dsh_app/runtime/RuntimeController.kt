@@ -21,7 +21,7 @@ import java.util.concurrent.Executors
  * failure detection / safe mode around it.
  * The Flutter plugin and the foreground service both talk to this singleton.
  */
-class RuntimeController private constructor(private val app: Context) : DshProcess.Listener {
+class RuntimeController private constructor(private val app: Context) : EngineProcess.Listener {
 
     enum class Phase(val wire: String) {
         NOT_INSTALLED("notInstalled"), INSTALLING("installing"), INSTALLED("installed"),
@@ -48,9 +48,42 @@ class RuntimeController private constructor(private val app: Context) : DshProce
     private val lkgFile = File(app.filesDir, "runtime/lkg/lkg.json")
     private val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    val manifest: RuntimeManifest by lazy { RuntimeManifest.load(app) }
-    private val installer by lazy { RuntimeInstaller(app, manifest, ::note) }
-    @Volatile private var process: DshProcess? = null
+    // Two engine worlds, each with its own manifest and install root (see [EngineFamily]).
+    private val glibcManifest: RuntimeManifest by lazy { RuntimeManifest.load(app) }
+    private val bionicManifest: RuntimeManifest by lazy { RuntimeManifest.load(app, bionic = true) }
+    private val glibcInstaller by lazy { RuntimeInstaller(app, glibcManifest, ::note) }
+    private val bionicInstaller by lazy { RuntimeInstaller(app, bionicManifest, ::note, bionic = true) }
+    private val bionicBundled: Boolean by lazy { RuntimeManifest.bionicBundled(app) }
+    private val glibcBundled: Boolean by lazy { RuntimeManifest.glibcBundled(app) }
+    private val seLinuxDomain: String? by lazy { EngineFamily.readSeLinuxDomain() }
+
+    /** Saved choice, fallback marker, SELinux domain and cached probe; decided at construction, see [applyFamilyDecision]. */
+    private val familyState = EngineFamily.State(
+        store = object : EngineFamily.State.Store {
+            override fun get(key: String): String? = prefs.getString(key, null)
+            override fun put(key: String, value: String?) { prefs.edit().apply { if (value == null) remove(key) else putString(key, value) }.apply() }
+        },
+        glibcRuntime = { runCatching { glibcManifest.runtimeVersion }.getOrNull() },
+        bionicAvailable = bionicBundled,
+        seLinuxDomain = { seLinuxDomain },
+        probe = ::cachedProbe,
+        glibcBundled = glibcBundled,
+    )
+    private val decision: EngineFamily.Decision get() = familyState.decision
+    private val family: EngineFamily.Family get() = decision.family
+    /** The family the current (or last) process was started in. */
+    @Volatile private var runFamily: EngineFamily.Family = decision.family
+
+    /** The bundled runtime of the family the next start (or the running process) uses. */
+    val manifest: RuntimeManifest get() = manifestOf(family)
+    private val installer: RuntimeInstaller get() = installerOf(family)
+
+    /** The rootfs of the family the next start (or the running process) uses; the one place that knows it. */
+    val activeRootfs: File get() = installer.rootfs
+    private fun manifestOf(f: EngineFamily.Family) = if (f == EngineFamily.Family.BIONIC) bionicManifest else glibcManifest
+    private fun installerOf(f: EngineFamily.Family) = if (f == EngineFamily.Family.BIONIC) bionicInstaller else glibcInstaller
+
+    @Volatile private var process: EngineProcess? = null
     @Volatile private var lastLaunch: LaunchDiagnostics? = null
     /** The start in progress is turning PRoot's fake hard links into real files (see [L2sMigration]). */
     @Volatile private var tidyingFiles = false
@@ -112,6 +145,47 @@ class RuntimeController private constructor(private val app: Context) : DshProce
             error = "manifest: ${e.message}"
             Phase.ERROR
         }
+        scheduleProbe()
+    }
+
+    private fun cachedProbe(): EngineFamily.Probe? =
+        EngineFamily.cachedProbe(prefs.getString(K_PROBE, null), prefs.getString(K_PROBE_FINGERPRINT, null), Build.FINGERPRINT)
+
+    /**
+     * The syscall probe settles `auto` where the SELinux domain does not say. It runs once per system
+     * build (result cached with the fingerprint) off the UI thread; until it answers the family follows
+     * the SELinux domain. A start already under way keeps its family; the cached answer applies from the next launch.
+     */
+    private fun scheduleProbe() {
+        if (!bionicBundled || familyState.choice != EngineFamily.AUTO) return
+        if (EngineFamily.confinedDomain(seLinuxDomain) || cachedProbe() != null) return
+        worker.execute {
+            val run = EngineFamily.runProbe(app.applicationInfo.nativeLibraryDir)
+            log("[dsh-app] syscall probe: ${run.probe.wire} (exit ${run.exitCode}, ${run.line ?: "no output"}); " +
+                "selinux=${seLinuxDomain ?: "unreadable"} fingerprint=${Build.FINGERPRINT}", "system")
+            if (run.probe == EngineFamily.Probe.UNKNOWN) return@execute
+            prefs.edit().putString(K_PROBE, run.probe.wire).putString(K_PROBE_FINGERPRINT, Build.FINGERPRINT).apply()
+            applyFamilyDecision()
+        }
+    }
+
+    /** Takes a changed decision while nothing is installing or running; the phase follows the new install root. */
+    @Synchronized private fun applyFamilyDecision() {
+        if (process != null || resetting || phase !in setOf(Phase.NOT_INSTALLED, Phase.INSTALLED, Phase.ERROR)) return
+        val before = decision
+        if (familyState.refresh() == before) return
+        log("[dsh-app] engine family: ${family.wire} (${decision.reason})", "system")
+        refreshPhaseForFamily()
+    }
+
+    private fun refreshPhaseForFamily() {
+        error = null
+        setPhase(try {
+            if (installer.isCurrent()) Phase.INSTALLED else Phase.NOT_INSTALLED
+        } catch (e: Exception) {
+            error = "manifest: ${e.message}"
+            Phase.ERROR
+        })
     }
 
     fun addSink(sink: EventSink) = synchronized(sinks) { sinks += sink }
@@ -139,7 +213,15 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         "networkBlocked" to networkAccess.isBlocked,
         "networkBlockedAt" to networkAccess.blockedAt,
         "directEngineEnabled" to directEngine().enabled,
-        "directEngineAvailable" to directEngineAvailable(),
+        "directEngineAvailable" to (family == EngineFamily.Family.GLIBC && directEngineAvailable()),
+        "engineFamily" to family.wire,
+        // Physical path of the active family's rootfs (also when not installed yet); the Dart side maps guest paths with it.
+        "rootfs" to runCatching { activeRootfs.canonicalPath }.getOrNull(),
+        "engineFamilyAvailable" to bionicBundled,
+        // A bionic-only APK has no glibc world: the settings page greys "force glibc" out on this.
+        "glibcBundled" to glibcBundled,
+        "engineFamilyOverride" to familyState.choice,
+        "engineFamilyReason" to decision.reason,
         "directEngineActive" to (process?.executionMode == "direct"),
         "directEngineFallbackReason" to lastLaunch?.fallbackReason,
         "currentExecutionMode" to process?.executionMode,
@@ -168,6 +250,17 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         check(!enabled || directEngineAvailable()) { "this bundled runtime does not support direct launch" }
         prefs.edit().putBoolean(K_DIRECT_ENGINE, enabled).remove(K_DIRECT_FAILED).apply()
         emitStatus()
+    }
+
+    /**
+     * The developer option `auto / glibc / bionic`. Like [setDirectEngine] only while the engine is stopped;
+     * any explicit choice also forgets an automatic fallback, so `auto` looks at the device afresh.
+     */
+    @Synchronized fun setEngineFamily(wire: String) {
+        check(process == null && phase !in setOf(Phase.STARTING, Phase.RUNNING, Phase.STOPPING, Phase.INSTALLING) && !resetting) { "stop the engine before changing its launch method" }
+        familyState.choose(wire)
+        log("[dsh-app] engine family: ${family.wire} (${decision.reason})", "system")
+        refreshPhaseForFamily()
     }
 
     /** While a process is up: its mode; otherwise the mode the next start will use. */
@@ -287,12 +380,17 @@ class RuntimeController private constructor(private val app: Context) : DshProce
     @Synchronized internal fun startProcess() {
         if (process != null || phase == Phase.INSTALLING || phase == Phase.STOPPING) return
         lastLaunch = null
-        if (!installer.isCurrent()) {
+        // One family for the whole start; a decision change waits for an idle moment (see applyFamilyDecision).
+        val startFamily = family
+        val bionic = startFamily == EngineFamily.Family.BIONIC
+        val inst = installerOf(startFamily)
+        if (!inst.isCurrent()) {
             error = "runtime not installed"
             setPhase(Phase.ERROR)
             DshService.stopSelfIfRunning(app)
             return
         }
+        runFamily = startFamily
         baseUrl = null
         token = null
         error = null
@@ -305,35 +403,38 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         setPhase(Phase.STARTING)
         timeline.requested()
         worker.execute {
-            var launched: DshProcess? = null
+            var launched: EngineProcess? = null
             try {
-                noteDns(GuestSetup.writeResolvConf(app, installer.rootfs), DnsConfigSource.START)
+                val man = manifestOf(startFamily)
+                // Bionic resolves names through the system's own resolver: no resolv.conf to write.
+                if (!bionic) noteDns(GuestSetup.writeResolvConf(app, inst.rootfs), DnsConfigSource.START)
+                val paths = if (bionic) GuestPaths.bionic(inst.rootfs) else GuestPaths.IDENTITY
                 val storage = pendingPhoneStorage && PhoneStorage.isGranted(app) && PhoneStorage.binds().isNotEmpty()
-                PhoneStorage.syncShortcut(installer.rootfs, storage)
+                PhoneStorage.syncShortcut(inst.rootfs, storage)
                 // Phone control: bridge up and guest files written before DSH starts; off in safe mode.
-                val phone = PhoneControl.get(app).prepareLaunch(installer.rootfs, safe) { log(it, "system") }
-                if (!safe && !SessionSearchGuest.writeFiles(installer.rootfs)) {
+                val phone = PhoneControl.get(app).prepareLaunch(inst.rootfs, safe, { log(it, "system") }, paths)
+                if (!safe && !SessionSearchGuest.writeFiles(inst.rootfs, paths)) {
                     log("[dsh-app] message search overlay not written; searching matches titles only", "system")
                 }
-                if (!safe && !AppAuthGuest.writeFiles(app, installer.rootfs)) {
+                if (!safe && !AppAuthGuest.writeFiles(app, inst.rootfs, paths)) {
                     log("[dsh-app] subscription sign-in overlay not written; ChatGPT / Claude sign-in is unavailable", "system")
                 }
-                if (!safe && !SpeechGuest.writeFiles(installer.rootfs)) {
+                if (!safe && !SpeechGuest.writeFiles(inst.rootfs, paths)) {
                     log("[dsh-app] voice input overlay not written; the voice model keeps DSH's defaults", "system")
                 }
                 if (pendingPhoneStorage && !storage) log("[dsh-app] phone storage requested but permission not granted", "system")
                 val env = LinkedHashMap<String, String>()
                 env["TZ"] = java.util.TimeZone.getDefault().id
                 env.putAll(pendingEnv)
-                PerformancePolicy.applyEngineEnvironment(app, env, manifest.launchArgv, manifest.launchEnv)
+                PerformancePolicy.applyEngineEnvironment(app, env, man.launchArgv, man.launchEnv)
                 if (safe) {
-                    SafeMode.prepare(installer.rootfs, briefing())
-                    env.putAll(SafeMode.GUEST_ENV)
+                    SafeMode.prepare(inst.rootfs, briefing(if (bionic) bionicNodePath(man) else null), paths)
+                    env.putAll(SafeMode.guestEnv(paths))
                     bootProfile = null
                     log("[dsh-app] safe mode: booting profile ${SafeMode.PROFILE} rebuilt from the web template, plugins off", "system")
                 } else {
                     bootProfile = try {
-                        LastKnownGood.read(installer.rootfs)
+                        LastKnownGood.read(inst.rootfs)
                     } catch (_: Exception) {
                         null
                     }
@@ -343,16 +444,28 @@ class RuntimeController private constructor(private val app: Context) : DshProce
                     PhoneControl.get(app).onEngineStopped()
                     return@execute
                 }
-                val p = DshProcess(app, manifest, installer.rootfs, this)
-                launched = p
-                lastLaunch = p.launchDiagnostics
-                process = p
-                timeline.spawned()
-                val direct = directEngine()
-                p.start(env, if (storage) PhoneStorage.binds() else emptyList(), safe, phone, direct.requested, direct.failed) { actualDirect ->
-                    GuestSetup.writeAgentsMd(installer.rootfs, storage, phone, pendingVisualReplies, actualDirect)
+                if (bionic) {
+                    log("[dsh-app] engine family: bionic (${decision.reason}); selinux=${seLinuxDomain ?: "unreadable"} fingerprint=${Build.FINGERPRINT}", "system")
+                    val p = BionicProcess(app, man, inst.rootfs, this)
+                    launched = p
+                    lastLaunch = p.launchDiagnostics
+                    process = p
+                    timeline.spawned()
+                    GuestSetup.writeAgentsMd(inst.rootfs, storage, phone, pendingVisualReplies, directEngine = false, bionic = true, paths = paths)
+                    p.start(env, safe, phone, paths)
+                    if (phone) PhoneControl.get(app).launched(p.phoneMounted)
+                } else {
+                    val p = DshProcess(app, man, inst.rootfs, this)
+                    launched = p
+                    lastLaunch = p.launchDiagnostics
+                    process = p
+                    timeline.spawned()
+                    val direct = directEngine()
+                    p.start(env, if (storage) PhoneStorage.binds() else emptyList(), safe, phone, direct.requested, direct.failed) { actualDirect ->
+                        GuestSetup.writeAgentsMd(inst.rootfs, storage, phone, pendingVisualReplies, actualDirect)
+                    }
+                    if (phone) PhoneControl.get(app).launched(p.phoneMounted)
                 }
-                if (phone) PhoneControl.get(app).launched(p.phoneMounted)
             } catch (e: Throwable) {
                 // Keep ownership while the old UID sweep runs, including a
                 // failure after spawning but before the waiter was allocated.
@@ -369,6 +482,9 @@ class RuntimeController private constructor(private val app: Context) : DshProce
             }
         }
     }
+
+    private fun bionicNodePath(man: RuntimeManifest): String =
+        java.io.File(app.applicationInfo.nativeLibraryDir, man.bionicNode ?: "libdsh_node.so").path
 
     @Synchronized internal fun stopProcess() {
         if (phase == Phase.INSTALLING) return
@@ -394,6 +510,7 @@ class RuntimeController private constructor(private val app: Context) : DshProce
 
     /** The default network changed: point the guest's resolv.conf at its DNS. */
     fun refreshDns(properties: LinkProperties) {
+        if (family == EngineFamily.Family.BIONIC) return // no guest resolv.conf: the system resolver is used
         val servers = GuestSetup.pickDns(properties.dnsServers)
         worker.execute {
             if ((phase == Phase.RUNNING || phase == Phase.STARTING) && installer.isCurrent()) {
@@ -582,7 +699,7 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         emptyList()
     }
 
-    private fun briefing(): SafeMode.Briefing {
+    private fun briefing(nodePath: String? = null): SafeMode.Briefing {
         val lkg = LastKnownGood.load(lkgFile)
         val log = try {
             File(logDir, MAIN_FAILURE_LOG).readLines()
@@ -598,6 +715,7 @@ class RuntimeController private constructor(private val app: Context) : DshProce
             lkgBundles = lkg?.snapshot?.bundles ?: emptyList(),
             lkgVersions = lkg?.snapshot?.versions ?: emptyMap(),
             failureLog = if (mainFailure == null) emptyList() else log,
+            nodePath = nodePath,
         )
     }
 
@@ -694,7 +812,7 @@ class RuntimeController private constructor(private val app: Context) : DshProce
 
     private fun notice(text: String) = emit(mapOf("type" to "notice", "text" to text))
 
-    // DshProcess.Listener
+    // EngineProcess.Listener
 
     override fun onLog(line: String, stream: String) {
         if (stream != "system") {
@@ -712,7 +830,7 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         emitStatus()
     }
 
-    @Synchronized override fun onReady(source: DshProcess, baseUrl: String, token: String) {
+    @Synchronized override fun onReady(source: EngineProcess, baseUrl: String, token: String) {
         // A late report from a stopped or replaced process.
         if (source !== process || phase == Phase.STOPPING) return
         DshService.cancelStoppedAlert(app)
@@ -742,7 +860,7 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         main.postDelayed({ if (gen == runGen && phase == Phase.RUNNING && process != null) onHealthy() }, SafePolicy.HEALTHY_MS)
     }
 
-    @Synchronized override fun onExit(source: DshProcess, code: Int, expected: Boolean) {
+    @Synchronized override fun onExit(source: EngineProcess, code: Int, expected: Boolean) {
         if (source !== process) return
         try {
             if (!expected && stopGen < runGen) {
@@ -769,7 +887,12 @@ class RuntimeController private constructor(private val app: Context) : DshProce
                 return
             }
             val tail = synchronized(runTail) { runTail.toList() }
-            var f = CrashClassifier.classify(code, readyAt, SystemClock.elapsedRealtime(), System.currentTimeMillis(), tail, runSafe, source.direct)
+            if (familyState.fellBack(runFamily, code, readyAt)) {
+                fallBackToBionic(code)
+                return
+            }
+            var f = CrashClassifier.classify(code, readyAt, SystemClock.elapsedRealtime(), System.currentTimeMillis(), tail, runSafe,
+                source.direct, bionic = runFamily == EngineFamily.Family.BIONIC)
             if (SafePolicy.directLaunchFailed(f, source.direct)) {
                 // Direct can't launch on this device: PRoot from now on with this runtime, no failure card,
                 // no strike. A new runtime, or the user turning Direct on again, gives it another try.
@@ -814,6 +937,25 @@ class RuntimeController private constructor(private val app: Context) : DshProce
             }
         } finally {
             runtimeLogs.flush()
+        }
+    }
+
+    /**
+     * The glibc engine was killed by the system's syscall filter before it was ready ([EngineFamily.State.fellBack]
+     * has marked this glibc runtime version as failed: a new runtime earns glibc another try, and switched the
+     * family): start again, installing the bionic package first when it is not there yet. No failure card, no strike,
+     * no safe mode: it says nothing about the profile or its plugins.
+     */
+    private fun fallBackToBionic(code: Int) {
+        log("[dsh-app] glibc engine killed by the system call filter before it was ready (exit $code); switching to the bionic engine", "system")
+        notice(AppStrings.get(app, R.string.engine_family_switched))
+        if (bionicInstaller.isCurrent()) {
+            restartNow("on the bionic engine")
+            return
+        }
+        error = null
+        install { failed ->
+            if (failed == null) restartNow("on the bionic engine") else DshService.stopSelfIfRunning(app)
         }
     }
 
@@ -863,6 +1005,8 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         private const val K_MOVED = "movedAside"
         private const val K_AUTO_SAFE = "autoSafe"
         private const val K_DIRECT_ENGINE = "directEngine"
+        private const val K_PROBE = "engine_family_probe"
+        private const val K_PROBE_FINGERPRINT = "engine_family_probe_fingerprint"
         /** Runtime version Direct failed to launch with (see [SafePolicy.directLaunchFailed]). */
         private const val K_DIRECT_FAILED = "directEngineFailedRuntime"
         private const val MAIN_FAILURE_LOG = "failure-normal.log"

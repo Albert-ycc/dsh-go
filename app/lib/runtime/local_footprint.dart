@@ -25,7 +25,7 @@ class LocalFootprint {
   /// Free space where the runtime unpacks (app files dir), MiB.
   final int? freeStorageMb;
 
-  /// The rootfs once unpacked (`manifest.json` `uncompressedBytes`), MiB.
+  /// The rootfs once unpacked (`manifest.json` `rootfsUncompressedBytes`, else `uncompressedBytes`), MiB.
   final int? unpackedMb;
 
   /// Below this the remote host is the suggested way. Phones report less
@@ -41,8 +41,9 @@ class LocalFootprint {
   static const engineMemoryMb = 300;
 
   /// What the installer insists on (`RuntimeInstaller.checkFreeSpace`:
-  /// unpacked size + 15%).
-  int? get requiredStorageMb => unpackedMb == null ? null : (unpackedMb! * 115 + 99) ~/ 100;
+  /// unpacked size + 30%). An upgrade makes the installer add a copy of the
+  /// old rootfs on top; this card speaks for a first install.
+  int? get requiredStorageMb => unpackedMb == null ? null : (unpackedMb! * 130 + 99) ~/ 100;
 
   /// [requiredStorageMb] rounded up to 50, for the 「存储空间不足」 line.
   int? get requiredRoundedMb => requiredStorageMb == null ? null : (requiredStorageMb! + 49) ~/ 50 * 50;
@@ -63,7 +64,9 @@ class LocalFootprint {
 final localFootprintProvider = FutureProvider<LocalFootprint>((ref) async {
   final info = await ref.watch(diagnosticsChannelProvider).info();
   int? whole(Object? v) => v is num && v >= 0 ? v.round() : null;
-  final unpacked = info.manifest['uncompressedBytes'];
+  // bionic 的 uncompressedBytes 含 node 可执行文件（装在 jniLibs，不占解包目录），
+  // 解包体积以 rootfsUncompressedBytes 为准；glibc manifest 没有这个字段。
+  final unpacked = info.manifest['rootfsUncompressedBytes'] ?? info.manifest['uncompressedBytes'];
   final memory = whole(info.device['memoryMb']);
   return LocalFootprint(
     totalMemoryMb: memory == 0 ? null : memory,

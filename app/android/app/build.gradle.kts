@@ -14,6 +14,9 @@ val keyProps = Properties().apply {
 
 // Per-ABI runtime bundles produced by runtime/build-runtime.sh.
 val runtimeOut = rootProject.file("../../runtime/out")
+// bionic engine bundle for Zhuoyitong, produced by runtime/build-bionic.sh. A separate directory,
+// because build-runtime.sh wipes its own output directory on every run. arm64 only.
+val bionicOut = rootProject.file("../../runtime/out-bionic")
 
 // versionCode is the build minute, same encoding as tooling/build_number.py:
 // (year - 2026) * 10^8 + MMDDhhmm at UTC+8. tooling/build-apk.sh passes it as
@@ -62,6 +65,8 @@ android {
         getByName("arm64") {
             assets.srcDir(File(runtimeOut, "arm64-v8a/assets"))
             jniLibs.srcDir(File(runtimeOut, "arm64-v8a/jniLibs"))
+            assets.srcDir(File(bionicOut, "arm64-v8a/assets"))
+            jniLibs.srcDir(File(bionicOut, "arm64-v8a/jniLibs"))
         }
         getByName("x64") {
             assets.srcDir(File(runtimeOut, "x86_64/assets"))
@@ -75,7 +80,11 @@ android {
         jniLibs {
             useLegacyPackaging = true
             // Keep the Termux binaries byte-identical to runtime/out (their hashes are in the manifest).
-            keepDebugSymbols += listOf("**/libproot.so", "**/libproot-loader.so", "**/libtalloc.so", "**/libandroid-shmem.so")
+            // Likewise the bionic node and the syscall probe (runtime/out-bionic/.../manifest.json).
+            keepDebugSymbols += listOf(
+                "**/libproot.so", "**/libproot-loader.so", "**/libtalloc.so", "**/libandroid-shmem.so",
+                "**/libdsh_node.so", "**/libdsh_sysprobe.so",
+            )
         }
     }
 

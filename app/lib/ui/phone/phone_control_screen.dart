@@ -31,6 +31,7 @@ import 'a11y_restore_sheet.dart';
 import 'app_rules_page.dart';
 import 'dnd_mode_page.dart';
 import 'phone_disclosure_sheet.dart';
+import 'phone_relay_page.dart';
 import 'phone_background_guide.dart';
 import 'phone_unlock_page.dart';
 import 'phone_widgets.dart';
@@ -334,11 +335,19 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
               title: l10n.phoneControlAdvanced,
               children: [
                 ListPageRow(
-                  icon: AppIcons.dndMode,
-                  spot: SettingsIndex.entry(SettingsPageId.phoneDnd),
-                  subtitle: dndSummary(status.background),
-                  onTap: () => _push(const PhoneDndPage()),
+                  icon: AppIcons.computer,
+                  spot: SettingsIndex.entry(SettingsPageId.phoneRelay),
+                  subtitle: status.hand == PhoneHand.mac ? status.relay.state.title(l10n) : l10n.phoneRelayRowHint,
+                  onTap: () => _push(const PhoneRelayPage()),
                 ),
+                // 不打扰模式 needs Android's shell identity: not on the 卓易通 container.
+                if (status.hand != PhoneHand.mac)
+                  ListPageRow(
+                    icon: AppIcons.dndMode,
+                    spot: SettingsIndex.entry(SettingsPageId.phoneDnd),
+                    subtitle: dndSummary(status.background),
+                    onTap: () => _push(const PhoneDndPage()),
+                  ),
                 ListPageRow(
                   icon: AppIcons.keepAlive,
                   spot: SettingsIndex.entry(SettingsPageId.background),
@@ -380,6 +389,11 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
     if (blocker == PhoneBlocker.remoteHost) return context.l10n.phoneControlLocalOnly;
     if (runtime.runtimeMissing) return context.l10n.localEnvPhoneNeedsRuntime;
     if (runtime.phase != RuntimePhase.running) return context.l10n.phoneControlAfterEngineStarts;
+    if (s.hand == PhoneHand.mac) {
+      return s.relay.state == PhoneRelayState.ok
+          ? context.l10n.phoneControlReady
+          : context.l10n.phoneRelayStatusLine(s.relay.state.title(context.l10n));
+    }
     if (!s.a11y.enabled) return context.l10n.phoneControlNeedsAccessibility;
     return context.l10n.phoneControlReady;
   }
@@ -387,28 +401,33 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
   List<Widget> _setup(PhoneStatus status) {
     final a11y = status.a11y;
     final confirmationReady = status.notifications && status.confirmationNotifications != false;
+    final mac = status.hand == PhoneHand.mac;
+    final readable = mac ? status.relay.state == PhoneRelayState.ok : a11y.enabled;
     final showRestricted = !a11y.enabled && (status.device.mayNeedRestrictedSettings || _a11yAttemptFailed);
     return [
       ListPageCard(
         title: context.l10n.phoneControlSetup,
         children: [
-          PhoneStepRow(
-            step: 1,
-            done: a11y.ok,
-            title: context.l10n.phoneControlAccessibilityService,
-            subtitle: a11y.ok
-                ? context.l10n.phoneControlAccessibilityReady
-                : a11y.enabled
-                ? context.l10n.phoneControlAccessibilityReconnect
-                : context.l10n.phoneControlAccessibilityHint,
-            trailing: a11y.ok
-                ? const DoneMark()
-                : FixButton(
-                    label: a11y.enabled ? context.l10n.phoneControlGoSettings : context.l10n.phoneControlGoEnable,
-                    onPressed: _openA11y,
-                  ),
-          ),
-          if (showRestricted)
+          if (mac)
+            _relayStep(status.relay)
+          else
+            PhoneStepRow(
+              step: 1,
+              done: a11y.ok,
+              title: context.l10n.phoneControlAccessibilityService,
+              subtitle: a11y.ok
+                  ? context.l10n.phoneControlAccessibilityReady
+                  : a11y.enabled
+                  ? context.l10n.phoneControlAccessibilityReconnect
+                  : context.l10n.phoneControlAccessibilityHint,
+              trailing: a11y.ok
+                  ? const DoneMark()
+                  : FixButton(
+                      label: a11y.enabled ? context.l10n.phoneControlGoSettings : context.l10n.phoneControlGoEnable,
+                      onPressed: _openA11y,
+                    ),
+            ),
+          if (showRestricted && !mac)
             ListPageRow(
               icon: AppIcons.unlock,
               iconColor: _a11yAttemptFailed ? DshColors.of(context).warning : null,
@@ -432,13 +451,14 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
                 ? DoneMark(label: context.l10n.phoneControlAllowed)
                 : FixButton(label: context.l10n.phoneControlGoEnable, onPressed: _openAppDetails),
           ),
-          ListPageRow(
-            key: const Key('phone-a11y-restore'),
-            icon: AppIcons.keepAlive,
-            spot: Spots.phoneA11yRestore,
-            subtitle: status.a11yKeeper.granted ? context.l10n.phoneEnabled : context.l10n.a11yRestoreNeedsGrant,
-            onTap: () => showA11yRestoreSheet(context),
-          ),
+          if (!mac)
+            ListPageRow(
+              key: const Key('phone-a11y-restore'),
+              icon: AppIcons.keepAlive,
+              spot: Spots.phoneA11yRestore,
+              subtitle: status.a11yKeeper.granted ? context.l10n.phoneEnabled : context.l10n.a11yRestoreNeedsGrant,
+              onTap: () => showA11yRestoreSheet(context),
+            ),
         ],
       ),
       const SizedBox(height: 24),
@@ -448,8 +468,10 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
           ListPageRow(
             icon: AppIcons.readScreen,
             title: context.l10n.phoneControlReadScreen,
-            subtitle: a11y.enabled
+            subtitle: readable
                 ? context.l10n.phoneControlReadScreenHint
+                : mac
+                ? context.l10n.phoneRelayReadScreenFirst
                 : context.l10n.phoneControlEnableAccessibilityFirst,
             trailing: _testing
                 ? const SizedBox.square(
@@ -457,12 +479,34 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round),
                   )
                 : null,
-            chevron: !_testing && a11y.enabled,
-            onTap: a11y.enabled && !_testing ? _test : null,
+            chevron: !_testing && readable,
+            onTap: readable && !_testing ? _test : null,
           ),
         ],
       ),
     ];
+  }
+
+  /// 卓易通: the container has no accessibility service, so the first step is
+  /// the Mac relay, whose page holds pairing and the state's next step.
+  Widget _relayStep(PhoneRelay relay) {
+    final l10n = context.l10n;
+    final ok = relay.state == PhoneRelayState.ok;
+    return PhoneStepRow(
+      step: 1,
+      done: ok,
+      title: l10n.phoneRelayTitle,
+      subtitle: ok
+          ? (relay.device.model == null ? l10n.phoneRelayStepOkNoModel : l10n.phoneRelayStepOk(relay.device.model!))
+          : relay.state.title(l10n),
+      onTap: () => _push(const PhoneRelayPage()),
+      trailing: ok
+          ? const DoneMark()
+          : FixButton(
+              label: relay.state == PhoneRelayState.unconfigured ? l10n.phoneRelayStepGoPair : l10n.phoneRelayStepGoFix,
+              onPressed: () => _push(const PhoneRelayPage()),
+            ),
+    );
   }
 
   Future<void> _setReturn(bool on) => ref.read(phoneReturnPrefProvider.notifier).set(on);
@@ -538,7 +582,7 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
         ],
       ),
       // How the bar behaves only matters once tasks can run.
-      if (state.status.enabled) ...[const SizedBox(height: 24), _floatingBar()],
+      if (state.status.enabled && state.status.hand != PhoneHand.mac) ...[const SizedBox(height: 24), _floatingBar()],
       const SizedBox(height: 24),
       ListPageCard(
         title: context.l10n.phoneControlRecentActions,

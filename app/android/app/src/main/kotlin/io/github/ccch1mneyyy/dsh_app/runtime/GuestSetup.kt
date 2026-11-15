@@ -41,6 +41,30 @@ object GuestSetup {
         |""").trimMargin()
 
     /**
+     * The same file for the bionic engine (HarmonyOS 卓易通): no Ubuntu userland, so the tool list is
+     * the degradation matrix of docs/design/zhuoyitong/P1-架构-引擎.md section 6 (accepted as the scope
+     * in section 11, decision 2). Guest paths written here pass through [GuestPaths.text] on write.
+     * The UI / skills section is shared with [AGENTS_MD].
+     */
+    // l10n:keep agent prompt
+    internal val BIONIC_AGENTS_MD = ("""
+        |<!-- dsh-app:managed — 删除这一行后，DSH App 不再覆盖本文件 -->
+        |# 运行环境（DSH 手机版 · 卓易通）
+        |
+        |- 你运行在鸿蒙卓易通容器里的 Android 环境中，引擎是直接启动的 Node 进程，不是 Ubuntu：没有 apt、没有 root，也没有 proot。路径都是真实的完整路径，文件工具和 shell 里同名可见。这里没有可用的沙箱后端，`workspace-write` 沙箱模式一定会被拒绝。
+""" +
+        // l10n:keep agent prompt
+        """        |- 需要执行 bash 命令时，直接用 `sandbox_permissions: "danger-full-access"` 申请运行，并用一句话写明理由；不要先试沙箱模式。
+        |- 默认工作目录是 `/root/workspace`。{STORAGE_LINE}
+        |- bash 工具跑的是系统自带的 `/system/bin/sh`（mksh）加 toybox 命令，不是 bash：数组、`[[ ]]`、花括号展开可用，进程替换 `<( )` 和 `${'$'}'..'` 不要用。可用的命令有 `ls cat head tail wc sort tr grep sed awk find xargs tar gzip gunzip cp mv rm mkdir chmod env sleep timeout nohup ps kill dd`，以及 Android 自带的 `getprop am pm cmd settings input screencap logcat`。
+        |- **这台机器上没有 git、python / python3、curl、wget、nc、ssh、perl、sqlite3。** 不要尝试 `apt`、`pip` 或自己安装它们。需要下载网页或调接口时用 Node：`node -e "fetch(process.argv[1]).then(r => r.text()).then(console.log)" <网址>`。任务非 git 或 python 不可时，直接告诉用户这台设备做不了，并说明原因。
+        |- 已有 node 和 pnpm（在 PATH 里，pnpm 默认用国内镜像 registry.npmmirror.com），没有 npm 命令。写脚本优先用 Node。
+        |- 读、写、改文件用文件工具（read / write / edit），它们不依赖 shell。grep / glob 工具依赖 rg，这台机器上可能没有；它报错时改用 shell 的 `grep -r` 和 `find`，或直接读文件。
+        |- 插件只接受 npm 来源（包名或 tarball 链接）；git / github 来源装不了，带原生 `.node` 文件的包和依赖 python 的插件也用不了。终端面板、本地语音识别、Office 转 PDF 在这台设备上不可用，用户问起时直说原因。
+        |- 手机屏幕小：回复尽量简洁，代码块不要太宽；用用户使用的语言回答。
+""").trimMargin() + AGENTS_MD.substring(AGENTS_MD.indexOf("\n## 界面与技能") - 1)
+
+    /**
      * Appended while 「可视化回复」 is on (default): how to answer with a ```dsh-ui view. The
      * component list and the rules are adapted from DS Bot's `show_view` description and prompt
      * rule (`ds-bot/src/host/tools.js`, `prompt.js`), rewritten for a fenced block in a phone chat.
@@ -100,11 +124,13 @@ object GuestSetup {
         phoneControl: Boolean = false,
         visualReplies: Boolean = true,
         directEngine: Boolean = false,
+        bionic: Boolean = false,
+        paths: GuestPaths = GuestPaths.IDENTITY,
     ) {
         try {
             val file = File(rootfs, "root/.dsh/AGENTS.md")
             if (file.exists() && !file.readText().startsWith(AGENTS_MARKER)) return
-            val environment = if (directEngine) {
+            val environment = if (bionic) BIONIC_AGENTS_MD else if (directEngine) {
                 // l10n:keep agent prompt
                 AGENTS_MD.replace("Ubuntu 24.04 环境里（proot，免 Root）", "Ubuntu 24.04 运行环境里（引擎直接启动，bash/git/python/apt 工具仍经 proot）")
                     .replace("`/root/workspace`", "`${rootfs.canonicalPath}/root/workspace`") +
@@ -112,7 +138,10 @@ object GuestSetup {
             } else AGENTS_MD
             val text = environment.replace(
                 "{STORAGE_LINE}",
-                if (phoneStorage) {
+                if (phoneStorage && bionic) {
+                    // l10n:keep agent prompt
+                    "用户已授权访问手机存储：手机内部存储在 `/sdcard`（`/root/手机存储` 是指向它的快捷方式，`/sdcard` 打不开时用快捷方式；相册在 `/sdcard/DCIM`，下载在 `/sdcard/Download`）。改动或删除用户文件前先说明并确认；给用户的产出文件放到 `/sdcard/Download/DSH-Go/`。"
+                } else if (phoneStorage) {
                     // l10n:keep agent prompt
                     "用户已授权访问手机存储：手机内部存储挂载在 `/sdcard`（`/root/手机存储` 是它的快捷方式；相册在 `/sdcard/DCIM`，下载在 `/sdcard/Download`）。改动或删除用户文件前先说明并确认；给用户的产出文件放到 `/sdcard/Download/DSH-Go/`。"
                 } else {
@@ -123,11 +152,13 @@ object GuestSetup {
                 (if (phoneControl) PhoneGuest.AGENTS_SECTION else "") +
                 DIAGNOSTICS_SECTION.replace(
                     "{PATH}",
-                    if (directEngine) "${rootfs.canonicalPath}/root/.dsh/dsh-app/diagnostics.md"
+                    if (directEngine && !bionic) "${rootfs.canonicalPath}/root/.dsh/dsh-app/diagnostics.md"
+                    else if (bionic) "/root/.dsh/dsh-app/diagnostics.md"
                     else "\$DSH_HOME/dsh-app/diagnostics.md",
                 )
             file.parentFile?.mkdirs()
-            if (!file.exists() || file.readText() != text) file.writeText(text)
+            val written = paths.text(text)
+            if (!file.exists() || file.readText() != written) file.writeText(written)
         } catch (_: Exception) {
         }
     }

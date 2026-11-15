@@ -1,0 +1,3 @@
+# 截图含个人信息且无法脱敏，只留在本机
+contract/fixtures/shots/
+e2e/results/

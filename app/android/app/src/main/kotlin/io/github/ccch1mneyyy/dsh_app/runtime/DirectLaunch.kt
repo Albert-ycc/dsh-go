@@ -341,7 +341,7 @@ object DirectLaunch {
         }
     }
 
-    private fun write(file: File, text: String, executable: Boolean = false) {
+    internal fun write(file: File, text: String, executable: Boolean = false) {
         val bytes = text.toByteArray(Charsets.UTF_8)
         if (Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS) && file.readBytes().contentEquals(bytes)) {
             if (executable) check(file.setExecutable(true, true))

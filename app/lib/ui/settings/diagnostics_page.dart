@@ -22,6 +22,7 @@ import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
 import 'settings_widgets.dart';
 import 'direct_engine_settings.dart';
+import 'engine_family_settings.dart';
 import '../common/brief_notice.dart';
 
 /// Self-service diagnostics: what the app knows about the runtime and the
@@ -149,6 +150,7 @@ class DiagnosticsPage extends ConsumerWidget {
         // it, as groups do.
         const DiagnosticsBundleNote(),
         const SizedBox(height: 24),
+        const EngineFamilySettings(),
         const DirectEngineSettings(),
       ],
     );
@@ -166,6 +168,7 @@ class RuntimeLaunchFacts extends StatelessWidget {
     final l10n = context.l10n;
     String method(String mode) => switch (mode) {
       'direct' => l10n.phoneLaunchDirect,
+      'bionic' => l10n.phoneLaunchBionic,
       'proot' => l10n.phoneLaunchCompatible,
       _ => mode,
     };

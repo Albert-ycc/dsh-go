@@ -26,8 +26,6 @@ void main() {
       ('gateway/method-not-found', '当前引擎版本不支持'),
     ])
       (DshRemoteException(code, 'Exception(raw): boom'), reason),
-    (const DshRemoteException('gateway/internal', 'boom'), ''),
-    (const DshRemoteException('x', 'boom'), ''),
     (StateError('Exception(raw): boom'), ''),
   ];
   for (var i = 0; i < cases.length; i++) {
@@ -40,4 +38,18 @@ void main() {
       }
     });
   }
+
+  test('a code with no sentence of its own shows the code, the cut message and the path', () {
+    final long = 'x' * 300;
+    expect(chatErrorText(const DshRemoteException('x', 'boom'), action: '新建对话失败'), '新建对话失败：x · boom');
+    expect(
+      chatErrorText(const DshRemoteException('fs/mkdir', 'EACCES', {'path': '/root/workspace'}), action: '新建对话失败'),
+      '新建对话失败：fs/mkdir · EACCES · /root/workspace',
+    );
+    final cut = chatErrorText(DshRemoteException('gateway/internal', long), action: 'a');
+    expect(cut.length, lessThan(160));
+    expect(cut, endsWith('…'));
+    // 非引擎错误仍只给动作名。
+    expect(chatErrorText(StateError('raw'), action: 'a'), 'a');
+  });
 }

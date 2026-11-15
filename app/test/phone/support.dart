@@ -35,6 +35,8 @@ Map<String, Object?> phoneStatus({
   bool taskStopped = false,
   bool taskWaived = false,
   Map<String, Object?>? device = const {'manufacturer': 'vivo', 'sdkInt': 35, 'sideloaded': true},
+  String? hand,
+  Map<String, Object?>? relay,
 }) => {
   'enabled': enabled,
   'bridgeListening': bridgeListening,
@@ -58,7 +60,18 @@ Map<String, Object?> phoneStatus({
     'waived': taskWaived,
   },
   'device': ?device,
+  'hand': ?hand,
+  'relay': ?relay,
 };
+
+/// A `relay` block as the native module sends it (P2-b 回执 4).
+Map<String, Object?> relayBlock({
+  String state = 'ok',
+  bool configured = true,
+  String? addr = '192.0.2.10:8731',
+  Map<String, Object?>? device = const {'model': 'VDE-AL00', 'via': 'usb', 'foreground': 'com.huawei.hmos.settings'},
+  int? lastOkAt,
+}) => {'configured': configured, 'addr': ?addr, 'state': state, 'device': ?device, 'lastOkAt': ?lastOkAt};
 
 /// [phoneStatus] from a native module with the versioned five-channel block
 /// (`background.privileged` v1, `background.root`, the shared API's source),
@@ -280,6 +293,27 @@ class FakePhoneNative {
           };
         }
         return result;
+      case 'setHand':
+        status = {...status, 'handSetting': args['hand'], if (args['hand'] != 'auto') 'hand': args['hand']};
+        return true;
+      case 'relayPair':
+        final paired = results[call.method] ?? {'ok': true};
+        if (paired['ok'] == true) status = {...status, 'relay': relayBlock(addr: args['addr'] as String?)};
+        return paired;
+      case 'relayTest':
+        return results[call.method] ??
+            {'ok': true, 'state': 'ok', 'model': 'VDE-AL00', 'via': 'usb', 'foreground': 'com.huawei.hmos.settings'};
+      case 'relaySetTarget':
+        return results[call.method] ?? {'ok': true};
+      case 'relayHalt':
+        final halted = results[call.method] ?? {'ok': true};
+        if (halted['ok'] == true) {
+          status = {...status, 'relay': relayBlock(state: 'halted')};
+        }
+        return halted;
+      case 'relayForget':
+        status = {...status, 'relay': relayBlock(state: 'unconfigured', configured: false, addr: null, device: null)};
+        return true;
       case 'getPolicies':
         return policies;
       case 'setPolicies':

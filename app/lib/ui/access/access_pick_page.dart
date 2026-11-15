@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
 import '../../state/access_state.dart';
+import '../../runtime/runtime_state.dart';
 import '../../state/phone_state.dart';
 import '../common/risk_notice.dart';
 import '../onboarding/onboarding_scaffold.dart';
@@ -101,6 +102,7 @@ class _AccessPickPageState extends ConsumerState<AccessPickPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = DshColors.of(context);
+    final bionic = ref.watch(localRuntimeProvider.select((r) => r.status.isBionic));
     final metered = ref.watch(accessReadingsProvider.select((r) => r.value?.metered == true));
     return OnboardingScaffold(
       children: [
@@ -111,19 +113,21 @@ class _AccessPickPageState extends ConsumerState<AccessPickPage> {
           key: const ValueKey('access-pick-card'),
           margin: EdgeInsets.zero,
           children: [
+            // 语音输入在这里等于下载本地语音模型，bionic 下没有。
             for (final feature in AccessFeature.values)
-              AccessFeatureRow(
-                feature: feature,
-                selected: _picked.contains(feature),
-                onTap: () => unawaited(_toggle(feature)),
-                lines: feature == AccessFeature.voice
-                    ? [
-                        (text: l10n.accessFeatureVoiceNeeds, color: null),
-                        (text: l10n.accessVoiceModel(voiceModelApproxMb), color: null),
-                        if (metered) (text: l10n.accessVoiceMetered, color: colors.warning),
-                      ]
-                    : const [],
-              ),
+              if (!(bionic && feature == AccessFeature.voice))
+                AccessFeatureRow(
+                  feature: feature,
+                  selected: _picked.contains(feature),
+                  onTap: () => unawaited(_toggle(feature)),
+                  lines: feature == AccessFeature.voice
+                      ? [
+                          (text: l10n.accessFeatureVoiceNeeds, color: null),
+                          (text: l10n.accessVoiceModel(voiceModelApproxMb), color: null),
+                          if (metered) (text: l10n.accessVoiceMetered, color: colors.warning),
+                        ]
+                      : const [],
+                ),
           ],
         ),
         const Spacer(flex: 2),

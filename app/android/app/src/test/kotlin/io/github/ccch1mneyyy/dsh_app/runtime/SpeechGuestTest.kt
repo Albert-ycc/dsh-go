@@ -55,4 +55,18 @@ class SpeechGuestTest {
             root.deleteRecursively()
         }
     }
+
+    @Test fun nonIdentityGuestPathsLeaveTheOverlayAndTheFileUnchanged() {
+        // 语音覆盖层里没有 guest 绝对路径（dataRoot 由引擎解析），换成物理路径映射后内容不变，文件仍可重复写。
+        val root = Files.createTempDirectory("speech-guest-paths").toFile()
+        try {
+            val paths = GuestPaths.bionic(root)
+            assertEquals(SpeechGuest.PATCH_YAML, SpeechGuest.patchYaml(paths))
+            assertTrue(SpeechGuest.writeFiles(root, paths))
+            assertEquals(SpeechGuest.PATCH_YAML, SpeechGuest.file(root).readText())
+            assertTrue(SpeechGuest.writeFiles(root, paths))
+        } finally {
+            root.deleteRecursively()
+        }
+    }
 }

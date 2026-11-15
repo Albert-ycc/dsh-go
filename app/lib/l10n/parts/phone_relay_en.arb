@@ -1,0 +1,111 @@
+{
+  "phoneRelayTitle": "Mac relay",
+  "phoneRelaySubtitle": "This phone's environment has no accessibility service, so phone control goes through your Mac",
+  "phoneRelayStepGoPair": "Pair",
+  "phoneRelayStepGoFix": "Fix",
+  "phoneRelayStepOk": "Connected · {model}",
+  "@phoneRelayStepOk": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneRelayStepOkNoModel": "Connected",
+  "phoneRelayReadScreenFirst": "Pair the Mac relay first",
+  "phoneRelayStatusLine": "Mac relay: {state}",
+  "@phoneRelayStatusLine": {
+    "placeholders": {
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneRelayStateOk": "Connected",
+  "phoneRelayStateUnreachable": "Can't reach the Mac",
+  "phoneRelayStateUnauthorized": "Pair again",
+  "phoneRelayStateHalted": "Paused",
+  "phoneRelayStateDeviceOffline": "Mac is online, phone is not",
+  "phoneRelayStateDeviceUnauthorized": "Phone hasn't allowed this Mac",
+  "phoneRelayStateLocked": "Phone is locked",
+  "phoneRelayStateUnconfigured": "Not paired yet",
+  "phoneRelayHintOk": "The Mac and the phone are both online. Go back to the conversation and say what to do.",
+  "phoneRelayHintUnreachable": "The phone can't reach the relay on the Mac. Check that the Mac is on, the relay is running (run dsh-relay status in the Mac's terminal) and both are on the same network, then tap Test connection.",
+  "phoneRelayHintUnauthorized": "The Mac no longer accepts this phone's pairing (access was revoked, or the relay's certificate changed). Run dsh-relay pair in the Mac's terminal for a new code, then pair again below.",
+  "phoneRelayHintHalted": "The relay on the Mac is paused, so nothing runs on the phone. Run dsh-relay resume in the Mac's terminal to continue; no need to pair again.",
+  "phoneRelayHintDeviceOffline": "The relay is online but the Mac can't reach the phone. Plug in USB, or with wireless debugging on, tap Update wireless debugging address below.",
+  "phoneRelayHintDeviceUnauthorized": "The phone hasn't allowed this Mac to debug it yet. Look at the phone's screen and tap Allow in the prompt.",
+  "phoneRelayHintLocked": "Unlock the phone before giving a task. Nothing runs while it is locked.",
+  "phoneRelayHintUnconfigured": "Install the relay on the Mac first, then pair below. The user guide's Phone control page has the steps.",
+  "phoneRelayPairTitle": "Pairing",
+  "phoneRelayPairHint": "Run dsh-relay pair in the Mac's terminal. It shows the Mac's address and a one-time code, valid for 5 minutes.",
+  "phoneRelayAddrLabel": "Mac address",
+  "phoneRelayAddrHelper": "Like 192.0.2.10:8731",
+  "phoneRelayCodeLabel": "Pairing code",
+  "phoneRelayCodeHelper": "Typed here once; not saved, not on the clipboard, not in logs",
+  "phoneRelayPair": "Pair",
+  "phoneRelayPairing": "Pairing…",
+  "phoneRelayPaired": "Paired",
+  "phoneRelayDeviceTitle": "Current phone",
+  "phoneRelayDeviceModel": "Model",
+  "phoneRelayDeviceVia": "Connection",
+  "phoneRelayViaUsb": "USB",
+  "phoneRelayViaTcp": "Wireless debugging",
+  "phoneRelayDeviceForeground": "App in front",
+  "phoneRelayDeviceUnknown": "Unknown",
+  "phoneRelayLastOk": "Last success",
+  "phoneRelayNever": "Never yet",
+  "phoneRelayAddr": "Mac address",
+  "phoneRelayManageTitle": "Manage",
+  "phoneRelayTest": "Test connection",
+  "phoneRelayTestHint": "Reads the phone's screen once to check the whole chain",
+  "phoneRelayTesting": "Testing…",
+  "phoneRelayTestOk": "Connection is fine · {model}",
+  "@phoneRelayTestOk": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "phoneRelayTestOkNoModel": "Connection is fine",
+  "phoneRelayTarget": "Update wireless debugging address",
+  "phoneRelayTargetHint": "Enter the new ip:port when the phone's wireless debugging port changes",
+  "phoneRelayTargetLabel": "Wireless debugging address",
+  "phoneRelayTargetHelper": "Like 192.0.2.20:46225, shown on the phone's wireless debugging page",
+  "phoneRelayTargetDone": "Address updated",
+  "phoneRelayHalt": "Stop the relay",
+  "phoneRelayHaltHint": "Makes the Mac stop everything now; to continue, run dsh-relay resume on the Mac",
+  "phoneRelayHaltDone": "The Mac has been told to pause",
+  "phoneRelayRepair": "Pair again",
+  "phoneRelayRepairHint": "For a new Mac, or when the pairing no longer works",
+  "phoneRelayForget": "Forget this Mac",
+  "phoneRelayForgetHint": "Removes the pairing from this phone only",
+  "phoneRelayForgetTitle": "Forget this Mac?",
+  "phoneRelayForgetBody": "This only removes the pairing from this phone. The Mac still holds its access entry; to revoke it, run dsh-relay revoke in the Mac's terminal.",
+  "phoneRelayForgetConfirm": "Forget",
+  "phoneRelayForgot": "Mac forgotten",
+  "phoneRelayUpdate": "Update",
+  "phoneRelayErrorBadAddress": "That address isn't ip:port, for example 192.0.2.10:8731",
+  "phoneRelayErrorUnauthorized": "The code is wrong or has expired. Run dsh-relay pair again on the Mac and use the new code",
+  "phoneRelayErrorPinMismatch": "This Mac couldn't prove it issued the code, so pairing stopped. Check the address and the network, then try again",
+  "phoneRelayErrorRelayUnreachable": "Can't reach the relay on the Mac. Check that the Mac is on, the relay is running and both are on the same network",
+  "phoneRelayErrorForbiddenSource": "The Mac refused this phone's network address. Check that both are on the same LAN (or Tailscale)",
+  "phoneRelayErrorDeviceLocked": "The phone is locked; unlock it and try again",
+  "phoneRelayErrorHalted": "The relay on the Mac is paused. Run dsh-relay resume in the Mac's terminal",
+  "phoneRelayErrorDeviceOffline": "The Mac can't reach this phone. Plug in USB or update the wireless debugging address",
+  "phoneRelayErrorDeviceUnauthorized": "The phone hasn't allowed this Mac to debug it; tap Allow on the phone",
+  "phoneRelayErrorDeviceTimeout": "That step timed out on the phone; try again in a moment",
+  "phoneRelayErrorBusy": "An earlier operation on the Mac is still running; try again in a moment",
+  "phoneRelayErrorUnconfigured": "Not paired yet",
+  "phoneRelayErrorUnknown": "It didn't work",
+  "pluginsInstallGitRefusedBionic": "This phone's runtime has no git, so plugins can't be installed from a Git source",
+  "pluginsInstallGitRefusedBionicHint": "Use the npm version from the market; if there isn't one, install it from DSH on a computer.",
+  "searchKwPhoneRelay": "Mac relay,relay,harmony,hdc,pair,pairing,mac,container",
+  "phoneRelayRowHint": "On HarmonyOS, drive the phone through a Mac",
+  "phoneRelayStateStoreUnreadable": "Pairing is no longer valid, pair again",
+  "phoneRelayHintStoreUnreadable": "The pairing record saved on this phone can't be read (the system key changed or the file is damaged). Run dsh-relay pair in the Mac's terminal for a new code, then pair again below.",
+  "phoneRelayErrorStoreFailed": "The phone couldn't save the pairing (system key unavailable or the write failed). The code wasn't used up; try again",
+  "phoneRelayErrorBadArgs": "The request was malformed; check the address and try again",
+  "phoneRelayErrorInternal": "The Mac relay hit an internal error; try again in a moment"
+}

@@ -147,6 +147,16 @@ class RuntimePlugin :
                     result.error("launch_method_unavailable", error.message, null)
                 }
             }
+            "setEngineFamily" -> {
+                try {
+                    controller.setEngineFamily(call.argument<String>("family") ?: EngineFamily.AUTO)
+                    result.success(null)
+                } catch (error: IllegalStateException) {
+                    result.error("launch_method_unavailable", error.message, null)
+                } catch (error: IllegalArgumentException) {
+                    result.error("invalid_engine_family", error.message, null)
+                }
+            }
             "failureLog" -> result.success(controller.failureLog())
             "batteryExempt" -> {
                 val pm = appContext.getSystemService(Context.POWER_SERVICE) as PowerManager

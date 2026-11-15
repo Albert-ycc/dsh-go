@@ -1,0 +1,48 @@
+{
+  "display": {
+    "id": 0,
+    "width": 1320,
+    "height": 2120
+  },
+  "locked": true,
+  "secureKeyboard": false,
+  "main": 0,
+  "windows": [
+    {
+      "bundle": "com.ohos.sceneboard",
+      "ability": "",
+      "page": "",
+      "kind": "system",
+      "bounds": [0,117,1320,2120],
+      "root": null
+    },
+    {
+      "bundle": "com.ohos.sceneboard",
+      "ability": "",
+      "page": "",
+      "kind": "system",
+      "bounds": [0,0,1320,117],
+      "root": {
+        "cls": "WindowScene",
+        "raw": "WindowScene",
+        "viewId": "session33",
+        "bounds": [0,0,1320,117],
+        "children": [
+          {
+            "cls": "android.view.View",
+            "raw": "__Common__",
+            "text": "中国广电",
+            "viewId": "StatusBarBridgeView",
+            "bounds": [0,0,1320,117],
+            "flags": [
+              "click",
+              "long"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "nodes": 2,
+  "truncated": false
+}

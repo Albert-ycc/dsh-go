@@ -1,0 +1,333 @@
+{
+  "display": {
+    "id": 0,
+    "width": 1320,
+    "height": 2120
+  },
+  "locked": false,
+  "secureKeyboard": false,
+  "main": 0,
+  "windows": [
+    {
+      "bundle": "probe.zyt",
+      "ability": "probe.zyt.MainActivity",
+      "page": "",
+      "kind": "app",
+      "bounds": [0,117,1320,2120],
+      "root": {
+        "cls": "android.view.ViewGroup",
+        "raw": "android.view.ViewGroup",
+        "viewId": "android:id/decor_content_parent",
+        "bounds": [0,117,1320,2072],
+        "children": [
+          {
+            "cls": "android.view.ViewGroup",
+            "raw": "android.view.ViewGroup",
+            "viewId": "android:id/action_bar",
+            "bounds": [0,117,1320,280],
+            "children": [
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "ZytProbe",
+                "bounds": [48,155,301,236]
+              }
+            ]
+          },
+          {
+            "cls": "android.widget.LinearLayout",
+            "raw": "android.widget.LinearLayout",
+            "bounds": [0,280,1320,2072],
+            "children": [
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "探针 页1/3 行66 运行中\nHTTP wlan0:192.168.31.226 端口 41209 /report",
+                "bounds": [24,328,1296,427]
+              },
+              {
+                "cls": "android.widget.LinearLayout",
+                "raw": "android.widget.LinearLayout",
+                "bounds": [24,427,1296,593],
+                "children": [
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "上一页",
+                    "bounds": [24,427,288,571],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "下一页",
+                    "bounds": [288,427,552,571],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "重跑",
+                    "bounds": [552,427,816,571],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "可达性",
+                    "bounds": [816,427,1080,571],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "无障碍设置",
+                    "bounds": [1080,440,1296,593],
+                    "flags": [
+                      "click"
+                    ]
+                  }
+                ]
+              },
+              {
+                "cls": "android.widget.LinearLayout",
+                "raw": "android.widget.LinearLayout",
+                "bounds": [24,593,1296,737],
+                "children": [
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "设置尝试",
+                    "bounds": [24,593,288,737],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "NODE 冒烟",
+                    "bounds": [288,593,573,737],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "android.widget.Button",
+                    "text": "无障碍结果",
+                    "bounds": [573,593,855,737],
+                    "flags": [
+                      "click"
+                    ]
+                  }
+                ]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "## 无障碍[main]",
+                "bounds": [24,737,1296,781]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "isEnabled: false",
+                "bounds": [24,781,1296,825]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "touchExploration: false",
+                "bounds": [24,825,1296,869]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "installed 数量: 3",
+                "bounds": [24,869,1296,913]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "installed: com.netease.uuremote/com.remote.provider.servic",
+                "bounds": [24,913,1296,957]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "   e.UURemoteAccessibilityService",
+                "bounds": [24,957,1296,1001]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "installed: io.github.ccch1mneyyy.dsh_app/.phone.a11y.Phone",
+                "bounds": [24,1001,1296,1045]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "   A11yService",
+                "bounds": [24,1045,1296,1089]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "installed: probe.zyt/.ProbeA11yService",
+                "bounds": [24,1089,1296,1133]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "enabled: 无",
+                "bounds": [24,1133,1296,1177]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "Secure.accessibility_enabled: 0",
+                "bounds": [24,1177,1296,1221]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "Secure.enabled_accessibility_services: null",
+                "bounds": [24,1221,1296,1265]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "服务回调文件 a11y.json: 不存在(服务从未 onServiceConnected)",
+                "bounds": [24,1265,1296,1309]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "## 可达性[main]",
+                "bounds": [24,1309,1296,1353]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "进程: probe.zyt ns/net=net:[4026531983]",
+                "bounds": [24,1353,1296,1397]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "if wlan0: up=true mtu=1500 ptp=false lo=false fe80::1",
+                "bounds": [24,1397,1296,1441]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "   ::1%wlan0/64 192.168.31.226/24",
+                "bounds": [24,1441,1296,1485]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "if lo: up=true mtu=65536 ptp=false lo=true ::1/128 127.0.0",
+                "bounds": [24,1485,1296,1529]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "   .1/8",
+                "bounds": [24,1529,1296,1573]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "ip addr: exit=0 out=[Cannot bind netlink socket: Permissio",
+                "bounds": [24,1573,1296,1617]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "   n denied|] ",
+                "bounds": [24,1617,1296,1661]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "ip route: exit=0 out=[Cannot bind netlink socket: Permissi",
+                "bounds": [24,1661,1296,1705]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "   on denied|Cannot bind netlink socket: Permission denied|] ",
+                "bounds": [24,1705,1296,1749]
+              },
+              {
+                "cls": "android.widget.TextView",
+                "raw": "android.widget.TextView",
+                "text": "ip neigh: exit=0 out=[Cannot bind netlink socket: Permissi",
+                "bounds": [24,1749,1296,1793]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "bundle": "com.ohos.sceneboard",
+      "ability": "",
+      "page": "",
+      "kind": "system",
+      "bounds": [0,0,1320,174],
+      "root": {
+        "cls": "WindowScene",
+        "raw": "WindowScene",
+        "viewId": "session33",
+        "bounds": [0,0,1320,174],
+        "children": [
+          {
+            "cls": "android.view.View",
+            "raw": "__Common__",
+            "text": "02, :, 56",
+            "viewId": "StatusBarBridgeView",
+            "bounds": [0,0,1320,174],
+            "flags": [
+              "click",
+              "long"
+            ],
+            "children": [
+              {
+                "cls": "Row",
+                "raw": "Row",
+                "text": "02, :, 56",
+                "desc": "长按时间切换显示格式",
+                "bounds": [56,22,177,94],
+                "flags": [
+                  "long"
+                ],
+                "children": [
+                  {
+                    "cls": "android.widget.TextView",
+                    "raw": "Text",
+                    "text": ":",
+                    "viewId": "TimeView_Text_timeText",
+                    "bounds": [110,36,123,81]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "nodes": 43,
+  "truncated": false
+}

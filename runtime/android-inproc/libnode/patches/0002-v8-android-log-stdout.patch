@@ -1,0 +1,13 @@
+# 来源：Termux packages/nodejs 的 tools-v8_gypfiles-toolchain.gypi 第一处（-mbranch-protection 那处不取）。
+# 为什么：V8 在 Android 上默认把 PRINT 写 logcat；定义 V8_ANDROID_LOG_STDOUT 让它写 stdout，进宿主管道。
+--- a/tools/v8_gypfiles/toolchain.gypi
++++ b/tools/v8_gypfiles/toolchain.gypi
+@@ -68,7 +68,7 @@
+     'mips_use_msa%': 0,
+ 
+     # Print to stdout on Android.
+-    'v8_android_log_stdout%': 0,
++    'v8_android_log_stdout%': 1,
+ 
+     'v8_enable_backtrace%': 0,
+ 

@@ -63,6 +63,7 @@ enum SettingsPageId {
   phoneAppRules,
   phoneDnd,
   phoneUnlocks,
+  phoneRelay,
   webSearch,
   media,
   plugins,
@@ -361,6 +362,15 @@ final _pages = <SettingsPageMeta>[
     keywords: (l) => l.searchKwPhoneUnlock,
     // The overlay's 「已解除限制」 tag opens it through this link.
     links: const ['phone-unlocks'],
+  ),
+  SettingsPageMeta(
+    SettingsPageId.phoneRelay,
+    title: (l) => l.phoneRelayTitle,
+    parent: SettingsPageId.phone,
+    keywords: (l) => l.searchKwPhoneRelay,
+    // The notification for an unreachable Mac and the guide open it through this link.
+    links: const ['phone-relay'],
+    condition: SpotCondition.phoneControlOn,
   ),
   SettingsPageMeta(
     SettingsPageId.webSearch,

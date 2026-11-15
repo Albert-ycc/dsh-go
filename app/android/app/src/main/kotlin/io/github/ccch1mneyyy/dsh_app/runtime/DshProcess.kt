@@ -24,15 +24,8 @@ class DshProcess(
     private val context: Context,
     private val manifest: RuntimeManifest,
     private val rootfs: File,
-    private val listener: Listener,
-) {
-    interface Listener {
-        fun onLog(line: String, stream: String)
-        fun onReady(source: DshProcess, baseUrl: String, token: String)
-        fun onExit(source: DshProcess, code: Int, expected: Boolean)
-        /** The start is busy turning PRoot's fake hard links into real files (true), or done (false). */
-        fun onTidying(active: Boolean) {}
-    }
+    private val listener: EngineProcess.Listener,
+) : EngineProcess {
 
     @Volatile private var process: Process? = null
     @Volatile private var stopping = false
@@ -46,22 +39,22 @@ class DshProcess(
         RuntimeProcessOwnership.cleanupState(rootfs.canonicalPath, AndroidProcess.myUid())
     }
     private val cleanupKnown get() = cleanupState.known
-    var port: Int = DEFAULT_PORT
+    override var port: Int = DEFAULT_PORT
         private set
 
-    @Volatile var startupError: String? = null
+    @Volatile override var startupError: String? = null
         private set
 
     /** The launch command got the phone-control overlay (see [PhoneGuest.launchArg]). */
-    var phoneMounted: Boolean = false
+    override var phoneMounted: Boolean = false
         private set
 
     /** Actual method for this process, fixed before it can be spawned. Safe mode stays proot. */
-    var direct: Boolean = false
+    override var direct: Boolean = false
         private set
 
-    val launchDiagnostics = LaunchDiagnostics()
-    val executionMode: String? get() = launchDiagnostics.currentMode(process?.isAlive == true)
+    override val launchDiagnostics = LaunchDiagnostics()
+    override val executionMode: String? get() = launchDiagnostics.currentMode(process?.isAlive == true)
 
     var directFallbackReason: String? = null
         private set
@@ -224,7 +217,7 @@ class DshProcess(
     }
 
     /** Waits for cleanup and exit reporting; zero waits until completion. */
-    fun awaitExit(millis: Long = 0): Boolean {
+    override fun awaitExit(millis: Long): Boolean {
         // The waiter joins the stopper before reporting exit. Startup can fail
         // after spawning but before allocating it, so await the stopper then.
         val ending = waiter ?: stopper
@@ -233,7 +226,7 @@ class DshProcess(
     }
 
     /** Preserve a startup failure through cleanup and the service's later STOP. */
-    @Synchronized fun failStart(message: String) {
+    @Synchronized override fun failStart(message: String) {
         if (stopping) return
         startupError = message
         listener.onLog("[dsh-app] start failed: $message", "system")
@@ -244,7 +237,7 @@ class DshProcess(
      * proot ignores SIGTERM, so stop DSH itself first (pid file written by the launch
      * command), then SIGQUIT proot, which kills every remaining tracee.
      */
-    @Synchronized fun stop(expected: Boolean = true) {
+    @Synchronized override fun stop(expected: Boolean) {
         stopping = true
         if (expected) expectedExit = true
         if (stopper != null) return

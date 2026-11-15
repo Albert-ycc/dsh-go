@@ -5950,6 +5950,73 @@ class L10nEn extends L10n {
   }
 
   @override
+  String get engineFamilyTitle => 'Runtime type';
+
+  @override
+  String get engineFamilyAuto => 'Automatic';
+
+  @override
+  String get engineFamilyAutoHint => 'Chosen for this phone. Recommended.';
+
+  @override
+  String get engineFamilyForceGlibc => 'Force glibc';
+
+  @override
+  String get engineFamilyGlibcHint =>
+      'Standard Linux environment with every feature. Some phones, such as HarmonyOS Zhuoyitong, block it and it cannot start.';
+
+  @override
+  String get engineFamilyForceBionic => 'Force bionic';
+
+  @override
+  String get engineFamilyBionicHint =>
+      'Runs on the phone’s own system libraries, for HarmonyOS Zhuoyitong. It has no git or python, so some features are unavailable.';
+
+  @override
+  String get engineFamilyBionicMissing => 'This phone has no bionic runtime package.';
+
+  @override
+  String get engineFamilyStopFirst => 'Stop the local engine first, then change the runtime.';
+
+  @override
+  String get engineFamilyChangeFailed => 'Could not change the runtime. Stop the local engine and try again.';
+
+  @override
+  String get engineFamilyCurrent => 'Current runtime';
+
+  @override
+  String get engineFamilyGlibcName => 'glibc (standard Linux)';
+
+  @override
+  String get engineFamilyBionicName => 'bionic (phone system libraries)';
+
+  @override
+  String get engineFamilyReasonLabel => 'Why';
+
+  @override
+  String get engineFamilyReasonOverride => 'You chose it above';
+
+  @override
+  String get engineFamilyReasonFallback =>
+      'glibc was killed by the system while starting, so bionic took over. glibc is tried again once the app brings a new runtime';
+
+  @override
+  String get engineFamilyReasonSeLinux => 'The system’s security policy restricts the standard Linux environment';
+
+  @override
+  String get engineFamilyReasonProbe => 'The system blocks a system call the standard Linux environment needs to start';
+
+  @override
+  String get engineFamilyReasonDefault => 'No restriction found, so the standard Linux environment is used';
+
+  @override
+  String get engineFamilyIndependentNote =>
+      'After switching runtimes, chats, plugins and settings stay separate and are not migrated. After falling back to bionic, the old glibc runtime still takes up storage; use Reset runtime to clear it when you need the space.';
+
+  @override
+  String get engineFamilyGlibcMissing => 'This app doesn\'t bundle the glibc runtime.';
+
+  @override
   String get featuresCordisSubtitle => 'Dynamic plugins · Cleared when the engine restarts';
 
   @override
@@ -10351,6 +10418,21 @@ class L10nEn extends L10n {
       'On the main Wireless debugging settings page, find “IP address & port” and enter the port after the colon. Do not use the pairing-code dialog’s port.';
 
   @override
+  String get phoneLaunchBionic => 'System-library launch';
+
+  @override
+  String get phoneBionicLimits =>
+      'The runtime on this phone has no git or python, so these features are unavailable under bionic: installing plugins from Git, plugins and skills that need python, third-party plugins with native components, on-device speech recognition, the terminal, and Office-to-PDF conversion.';
+
+  @override
+  String get phoneBionicVoiceUnavailable =>
+      'The runtime on this phone lacks the components on-device speech recognition needs, so the local voice model is unavailable.';
+
+  @override
+  String get phoneBionicTerminalUnavailable =>
+      'The runtime on this phone lacks the components the terminal needs, so the on-device engine\'s terminal is unavailable.';
+
+  @override
   String get phoneTaskResultReady => 'Task complete · View result';
 
   @override
@@ -10470,6 +10552,296 @@ class L10nEn extends L10n {
 
   @override
   String get phoneKeepFailed => 'Couldn’t reconnect. Tries again when you open the app or start a task.';
+
+  @override
+  String get phoneRelayTitle => 'Mac relay';
+
+  @override
+  String get phoneRelaySubtitle =>
+      'This phone\'s environment has no accessibility service, so phone control goes through your Mac';
+
+  @override
+  String get phoneRelayStepGoPair => 'Pair';
+
+  @override
+  String get phoneRelayStepGoFix => 'Fix';
+
+  @override
+  String phoneRelayStepOk(String model) {
+    return 'Connected · $model';
+  }
+
+  @override
+  String get phoneRelayStepOkNoModel => 'Connected';
+
+  @override
+  String get phoneRelayReadScreenFirst => 'Pair the Mac relay first';
+
+  @override
+  String phoneRelayStatusLine(String state) {
+    return 'Mac relay: $state';
+  }
+
+  @override
+  String get phoneRelayStateOk => 'Connected';
+
+  @override
+  String get phoneRelayStateUnreachable => 'Can\'t reach the Mac';
+
+  @override
+  String get phoneRelayStateUnauthorized => 'Pair again';
+
+  @override
+  String get phoneRelayStateHalted => 'Paused';
+
+  @override
+  String get phoneRelayStateDeviceOffline => 'Mac is online, phone is not';
+
+  @override
+  String get phoneRelayStateDeviceUnauthorized => 'Phone hasn\'t allowed this Mac';
+
+  @override
+  String get phoneRelayStateLocked => 'Phone is locked';
+
+  @override
+  String get phoneRelayStateUnconfigured => 'Not paired yet';
+
+  @override
+  String get phoneRelayHintOk =>
+      'The Mac and the phone are both online. Go back to the conversation and say what to do.';
+
+  @override
+  String get phoneRelayHintUnreachable =>
+      'The phone can\'t reach the relay on the Mac. Check that the Mac is on, the relay is running (run dsh-relay status in the Mac\'s terminal) and both are on the same network, then tap Test connection.';
+
+  @override
+  String get phoneRelayHintUnauthorized =>
+      'The Mac no longer accepts this phone\'s pairing (access was revoked, or the relay\'s certificate changed). Run dsh-relay pair in the Mac\'s terminal for a new code, then pair again below.';
+
+  @override
+  String get phoneRelayHintHalted =>
+      'The relay on the Mac is paused, so nothing runs on the phone. Run dsh-relay resume in the Mac\'s terminal to continue; no need to pair again.';
+
+  @override
+  String get phoneRelayHintDeviceOffline =>
+      'The relay is online but the Mac can\'t reach the phone. Plug in USB, or with wireless debugging on, tap Update wireless debugging address below.';
+
+  @override
+  String get phoneRelayHintDeviceUnauthorized =>
+      'The phone hasn\'t allowed this Mac to debug it yet. Look at the phone\'s screen and tap Allow in the prompt.';
+
+  @override
+  String get phoneRelayHintLocked => 'Unlock the phone before giving a task. Nothing runs while it is locked.';
+
+  @override
+  String get phoneRelayHintUnconfigured =>
+      'Install the relay on the Mac first, then pair below. The user guide\'s Phone control page has the steps.';
+
+  @override
+  String get phoneRelayPairTitle => 'Pairing';
+
+  @override
+  String get phoneRelayPairHint =>
+      'Run dsh-relay pair in the Mac\'s terminal. It shows the Mac\'s address and a one-time code, valid for 5 minutes.';
+
+  @override
+  String get phoneRelayAddrLabel => 'Mac address';
+
+  @override
+  String get phoneRelayAddrHelper => 'Like 192.0.2.10:8731';
+
+  @override
+  String get phoneRelayCodeLabel => 'Pairing code';
+
+  @override
+  String get phoneRelayCodeHelper => 'Typed here once; not saved, not on the clipboard, not in logs';
+
+  @override
+  String get phoneRelayPair => 'Pair';
+
+  @override
+  String get phoneRelayPairing => 'Pairing…';
+
+  @override
+  String get phoneRelayPaired => 'Paired';
+
+  @override
+  String get phoneRelayDeviceTitle => 'Current phone';
+
+  @override
+  String get phoneRelayDeviceModel => 'Model';
+
+  @override
+  String get phoneRelayDeviceVia => 'Connection';
+
+  @override
+  String get phoneRelayViaUsb => 'USB';
+
+  @override
+  String get phoneRelayViaTcp => 'Wireless debugging';
+
+  @override
+  String get phoneRelayDeviceForeground => 'App in front';
+
+  @override
+  String get phoneRelayDeviceUnknown => 'Unknown';
+
+  @override
+  String get phoneRelayLastOk => 'Last success';
+
+  @override
+  String get phoneRelayNever => 'Never yet';
+
+  @override
+  String get phoneRelayAddr => 'Mac address';
+
+  @override
+  String get phoneRelayManageTitle => 'Manage';
+
+  @override
+  String get phoneRelayTest => 'Test connection';
+
+  @override
+  String get phoneRelayTestHint => 'Reads the phone\'s screen once to check the whole chain';
+
+  @override
+  String get phoneRelayTesting => 'Testing…';
+
+  @override
+  String phoneRelayTestOk(String model) {
+    return 'Connection is fine · $model';
+  }
+
+  @override
+  String get phoneRelayTestOkNoModel => 'Connection is fine';
+
+  @override
+  String get phoneRelayTarget => 'Update wireless debugging address';
+
+  @override
+  String get phoneRelayTargetHint => 'Enter the new ip:port when the phone\'s wireless debugging port changes';
+
+  @override
+  String get phoneRelayTargetLabel => 'Wireless debugging address';
+
+  @override
+  String get phoneRelayTargetHelper => 'Like 192.0.2.20:46225, shown on the phone\'s wireless debugging page';
+
+  @override
+  String get phoneRelayTargetDone => 'Address updated';
+
+  @override
+  String get phoneRelayHalt => 'Stop the relay';
+
+  @override
+  String get phoneRelayHaltHint => 'Makes the Mac stop everything now; to continue, run dsh-relay resume on the Mac';
+
+  @override
+  String get phoneRelayHaltDone => 'The Mac has been told to pause';
+
+  @override
+  String get phoneRelayRepair => 'Pair again';
+
+  @override
+  String get phoneRelayRepairHint => 'For a new Mac, or when the pairing no longer works';
+
+  @override
+  String get phoneRelayForget => 'Forget this Mac';
+
+  @override
+  String get phoneRelayForgetHint => 'Removes the pairing from this phone only';
+
+  @override
+  String get phoneRelayForgetTitle => 'Forget this Mac?';
+
+  @override
+  String get phoneRelayForgetBody =>
+      'This only removes the pairing from this phone. The Mac still holds its access entry; to revoke it, run dsh-relay revoke in the Mac\'s terminal.';
+
+  @override
+  String get phoneRelayForgetConfirm => 'Forget';
+
+  @override
+  String get phoneRelayForgot => 'Mac forgotten';
+
+  @override
+  String get phoneRelayUpdate => 'Update';
+
+  @override
+  String get phoneRelayErrorBadAddress => 'That address isn\'t ip:port, for example 192.0.2.10:8731';
+
+  @override
+  String get phoneRelayErrorUnauthorized =>
+      'The code is wrong or has expired. Run dsh-relay pair again on the Mac and use the new code';
+
+  @override
+  String get phoneRelayErrorPinMismatch =>
+      'This Mac couldn\'t prove it issued the code, so pairing stopped. Check the address and the network, then try again';
+
+  @override
+  String get phoneRelayErrorRelayUnreachable =>
+      'Can\'t reach the relay on the Mac. Check that the Mac is on, the relay is running and both are on the same network';
+
+  @override
+  String get phoneRelayErrorForbiddenSource =>
+      'The Mac refused this phone\'s network address. Check that both are on the same LAN (or Tailscale)';
+
+  @override
+  String get phoneRelayErrorDeviceLocked => 'The phone is locked; unlock it and try again';
+
+  @override
+  String get phoneRelayErrorHalted => 'The relay on the Mac is paused. Run dsh-relay resume in the Mac\'s terminal';
+
+  @override
+  String get phoneRelayErrorDeviceOffline =>
+      'The Mac can\'t reach this phone. Plug in USB or update the wireless debugging address';
+
+  @override
+  String get phoneRelayErrorDeviceUnauthorized =>
+      'The phone hasn\'t allowed this Mac to debug it; tap Allow on the phone';
+
+  @override
+  String get phoneRelayErrorDeviceTimeout => 'That step timed out on the phone; try again in a moment';
+
+  @override
+  String get phoneRelayErrorBusy => 'An earlier operation on the Mac is still running; try again in a moment';
+
+  @override
+  String get phoneRelayErrorUnconfigured => 'Not paired yet';
+
+  @override
+  String get phoneRelayErrorUnknown => 'It didn\'t work';
+
+  @override
+  String get pluginsInstallGitRefusedBionic =>
+      'This phone\'s runtime has no git, so plugins can\'t be installed from a Git source';
+
+  @override
+  String get pluginsInstallGitRefusedBionicHint =>
+      'Use the npm version from the market; if there isn\'t one, install it from DSH on a computer.';
+
+  @override
+  String get searchKwPhoneRelay => 'Mac relay,relay,harmony,hdc,pair,pairing,mac,container';
+
+  @override
+  String get phoneRelayRowHint => 'On HarmonyOS, drive the phone through a Mac';
+
+  @override
+  String get phoneRelayStateStoreUnreadable => 'Pairing is no longer valid, pair again';
+
+  @override
+  String get phoneRelayHintStoreUnreadable =>
+      'The pairing record saved on this phone can\'t be read (the system key changed or the file is damaged). Run dsh-relay pair in the Mac\'s terminal for a new code, then pair again below.';
+
+  @override
+  String get phoneRelayErrorStoreFailed =>
+      'The phone couldn\'t save the pairing (system key unavailable or the write failed). The code wasn\'t used up; try again';
+
+  @override
+  String get phoneRelayErrorBadArgs => 'The request was malformed; check the address and try again';
+
+  @override
+  String get phoneRelayErrorInternal => 'The Mac relay hit an internal error; try again in a moment';
 
   @override
   String get phoneModeTitle => 'How DSH confirms';

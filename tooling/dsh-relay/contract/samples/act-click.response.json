@@ -1,0 +1,1 @@
+{"ok":true,"op":"click","steps":[{"cmd":"uitest uiInput click 660 1020","ms":312,"out":"No Error"}],"tookMs":314}

@@ -1,0 +1,16 @@
+# 来源：Termux packages/nodejs 的 src-debug_utils.cc（思路同，24.22.1 上手写重做）。
+# 为什么：node 24.22.1 在 __ANDROID__ 下把 C++ 层 FPrintF(stderr) 发往 logcat，嵌入后致命异常/OOM 的输出进不了宿主接管 fd 2 的管道，崩溃分类读不到。删掉该分支让它走 fwrite。
+--- a/src/debug_utils.cc
++++ b/src/debug_utils.cc
+@@ -530,11 +530,6 @@
+ 
+   WriteConsoleW(handle, wbuf.data(), n, nullptr, nullptr);
+   return;
+-#elif defined(__ANDROID__)
+-  if (file == stderr) {
+-    __android_log_print(ANDROID_LOG_ERROR, "nodejs", "%s", str.data());
+-    return;
+-  }
+ #endif
+   simple_fwrite();
+ }

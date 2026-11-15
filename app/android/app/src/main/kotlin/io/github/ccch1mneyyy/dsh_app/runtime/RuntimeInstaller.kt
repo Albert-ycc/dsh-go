@@ -15,7 +15,7 @@ import java.security.MessageDigest
  * Unpacks the bundled rootfs into app-private storage.
  *
  * Layout under filesDir/runtime:
- *   rootfs/            the active Linux root (proot -r)
+ *   rootfs/            the active Linux root (proot -r); for bionic, the physical-path tree the Node child runs in
  *   rootfs.version     runtimeVersion of the active rootfs
  *   staging/           in-progress extraction, swapped in atomically when done
  *   home.carry/        the user's /root while an upgrade swaps rootfs (see [activateRootfs])
@@ -31,13 +31,15 @@ class RuntimeInstaller(
     private val manifest: RuntimeManifest,
     private val onLog: (String) -> Unit,
     private val sync: () -> Unit = ::syncFilesystems,
+    /** The bionic engine's own install root (`runtime-bionic/`), next to the glibc one and independent of it. */
+    private val bionic: Boolean = false,
 ) {
-    val baseDir = File(context.filesDir, "runtime")
+    val baseDir = File(context.filesDir, if (bionic) "runtime-bionic" else "runtime")
     val rootfs = File(baseDir, "rootfs")
     private val versionFile = File(baseDir, "rootfs.version")
     private val staging = File(baseDir, "staging")
-    private val retiredDir = File(context.filesDir, "runtime.reset")
-    private val keepDir = File(context.filesDir, "runtime-keep")
+    private val retiredDir = File(context.filesDir, if (bionic) "runtime-bionic.reset" else "runtime.reset")
+    private val keepDir = File(context.filesDir, if (bionic) "runtime-bionic-keep" else "runtime-keep")
 
     fun installedVersion(): String? =
         if (rootfs.isDirectory && versionFile.isFile) versionFile.readText().trim().ifEmpty { null } else null
@@ -57,7 +59,7 @@ class RuntimeInstaller(
         checkFreeSpace()
         staging.mkdirs()
 
-        val assetPath = "${RuntimeManifest.ASSET_DIR}/${manifest.rootfsAsset}"
+        val assetPath = "${manifest.assetDir}/${manifest.rootfsAsset}"
         val assetBytes = assetLength(assetPath)
         val total = assetBytes.takeIf { it > 0 } ?: manifest.rootfsBytes
         var lastReported = 0L
@@ -98,7 +100,7 @@ class RuntimeInstaller(
 
         timed("activate") {
             activateRootfs(baseDir, manifest.runtimeVersion, keepDir, dropKept,
-                sync = { timed("sync") { sync() } })
+                sync = { timed("sync") { sync() } }, bionic = bionic)
         }
     }
 
@@ -112,7 +114,11 @@ class RuntimeInstaller(
     }
 
     private fun checkFreeSpace() {
-        val need = (manifest.uncompressedBytes.takeIf { it > 0 } ?: 600L * 1024 * 1024) * 115 / 100
+        // bionic: uncompressedBytes also counts the Node executable, which stays in nativeLibraryDir, not filesDir.
+        val onDisk = if (bionic) manifest.raw.optLong("rootfsUncompressedBytes", -1L) else -1L
+        val size = onDisk.takeIf { it > 0 } ?: manifest.uncompressedBytes.takeIf { it > 0 } ?: 600L * 1024 * 1024
+        // An upgrade keeps the old rootfs until the new one is in place: both are on disk at the peak.
+        val need = size * 130 / 100 + if (rootfs.isDirectory) size else 0L
         val free = context.filesDir.usableSpace
         if (free < need) {
             val mb = { b: Long -> b / (1024 * 1024) }
@@ -168,6 +174,8 @@ internal fun activateRootfs(
     dropKept: Boolean = false,
     sync: () -> Unit,
     syncDirectory: (File) -> Unit = ::syncDirectory,
+    /** The bionic tree: no PRoot mount points, and no Direct path alias to carry. */
+    bionic: Boolean = false,
 ) {
     val rootfs = File(base, "rootfs")
     val staging = File(base, "staging")
@@ -179,7 +187,7 @@ internal fun activateRootfs(
     if (Files.deleteIfExists(versionFile.toPath())) syncDirectory(base)
     // /opt is replaced below. Remember old direct use with the carried home so
     // saved physical cwd paths remain readable after upgrading in PRoot mode.
-    DirectLaunch.preservePhysicalAlias(rootfs, if (carry.exists()) carry else home, retired)
+    if (!bionic) DirectLaunch.preservePhysicalAlias(rootfs, if (carry.exists()) carry else home, retired)
     if (!carry.exists() && home.isDirectory && !home.renameTo(carry)) {
         throw IllegalStateException("could not keep the user's home")
     }
@@ -190,7 +198,8 @@ internal fun activateRootfs(
         home.deleteRecursivelySafely()
         if (!carry.renameTo(home)) throw IllegalStateException("could not restore the user's home")
     }
-    listOf("root", "root/workspace", "tmp", "dev", "proc", "sys").forEach { File(rootfs, it).mkdirs() }
+    val skeleton = if (bionic) listOf("root", "root/workspace", "tmp") else listOf("root", "root/workspace", "tmp", "dev", "proc", "sys")
+    skeleton.forEach { File(rootfs, it).mkdirs() }
     File(rootfs, "tmp").setWritable(true, false)
     // Before the version: until everything kept is back, the runtime reads as not installed.
     if (keep != null) restoreKept(keep, rootfs, dropKept)

@@ -43,16 +43,20 @@ object SpeechGuest {
 
     fun file(rootfs: File) = File(rootfs, PATCH.removePrefix("/"))
 
+    /** The overlay as the engine reads it: guest paths mapped by [paths]. */
+    fun patchYaml(paths: GuestPaths = GuestPaths.IDENTITY): String = paths.text(PATCH_YAML)
+
     /** Writes the overlay; false (and no file) when it could not be written, so the launch leaves it out. */
-    fun writeFiles(rootfs: File): Boolean {
+    fun writeFiles(rootfs: File, paths: GuestPaths = GuestPaths.IDENTITY): Boolean {
         val target = file(rootfs)
+        val yaml = patchYaml(paths)
         return try {
             val dir = target.parentFile ?: throw IOException("no parent for ${target.path}")
             if (!dir.isDirectory && !dir.mkdirs()) throw IOException("could not create ${dir.path}")
-            if (!target.exists() || target.readText() != PATCH_YAML) {
+            if (!target.exists() || target.readText() != yaml) {
                 val tmp = File(dir, ".${target.name}.dsh-app-${System.nanoTime()}.tmp")
                 try {
-                    tmp.writeText(PATCH_YAML)
+                    tmp.writeText(yaml)
                     tmp.setReadable(true, false)
                     if (!tmp.renameTo(target)) throw IOException("could not replace ${target.path}")
                 } finally {

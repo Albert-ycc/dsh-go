@@ -1,0 +1,18 @@
+{
+  "设置": "com.huawei.hmos.settings",
+  "计算器": "com.huawei.hmos.calculator",
+  "相机": "com.huawei.hmos.camera",
+  "图库": "com.huawei.hmos.photos",
+  "备忘录": "com.huawei.hmos.notepad",
+  "日历": "com.huawei.hmos.calendar",
+  "时钟": "com.huawei.hmos.clock",
+  "文件管理": "com.huawei.hmos.files",
+  "浏览器": "com.huawei.hmos.browser",
+  "邮件": "com.huawei.hmos.email",
+  "录音机": "com.huawei.hmos.soundrecorder",
+  "视频": "com.huawei.hmos.videoplayer",
+  "地图": "com.huawei.hmos.maps.app",
+  "健康": "com.huawei.hmos.health",
+  "小艺": "com.huawei.hmos.vassistant",
+  "手机管家": "com.huawei.hmos.securityguardassistant"
+}

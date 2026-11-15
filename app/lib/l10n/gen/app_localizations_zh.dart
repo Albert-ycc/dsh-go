@@ -5619,6 +5619,70 @@ class L10nZh extends L10n {
   }
 
   @override
+  String get engineFamilyTitle => '运行环境类型';
+
+  @override
+  String get engineFamilyAuto => '自动';
+
+  @override
+  String get engineFamilyAutoHint => '按这台手机的情况选择，推荐。';
+
+  @override
+  String get engineFamilyForceGlibc => '强制 glibc';
+
+  @override
+  String get engineFamilyGlibcHint => '标准 Linux 环境，功能完整。部分手机（例如鸿蒙卓易通）的系统会拦截，启动不了。';
+
+  @override
+  String get engineFamilyForceBionic => '强制 bionic';
+
+  @override
+  String get engineFamilyBionicHint => '直接用手机系统自带的库运行，供鸿蒙卓易通使用。里面没有 git、python，部分功能不可用。';
+
+  @override
+  String get engineFamilyBionicMissing => '这台手机没有 bionic 运行包。';
+
+  @override
+  String get engineFamilyStopFirst => '请先停止本机引擎，再切换运行环境。';
+
+  @override
+  String get engineFamilyChangeFailed => '未能切换运行环境，请停止本机引擎后重试。';
+
+  @override
+  String get engineFamilyCurrent => '当前运行环境';
+
+  @override
+  String get engineFamilyGlibcName => 'glibc（标准 Linux）';
+
+  @override
+  String get engineFamilyBionicName => 'bionic（手机系统库）';
+
+  @override
+  String get engineFamilyReasonLabel => '判定原因';
+
+  @override
+  String get engineFamilyReasonOverride => '你在上面手动指定了';
+
+  @override
+  String get engineFamilyReasonFallback => 'glibc 启动时被系统终止，已自动改用 bionic；App 带来新的运行环境后会再试一次 glibc';
+
+  @override
+  String get engineFamilyReasonSeLinux => '系统的安全策略限制了标准 Linux 环境';
+
+  @override
+  String get engineFamilyReasonProbe => '系统拦截了标准 Linux 环境启动所必需的系统调用';
+
+  @override
+  String get engineFamilyReasonDefault => '没有发现限制，使用标准 Linux 环境';
+
+  @override
+  String get engineFamilyIndependentNote =>
+      '切换运行环境后，对话、插件和设置各自独立，不会迁移。回退到 bionic 后，原来的 glibc 运行环境仍占用存储，需要时用「重置运行环境」清理。';
+
+  @override
+  String get engineFamilyGlibcMissing => '这个安装包没有 glibc 运行包。';
+
+  @override
   String get featuresCordisSubtitle => '动态插件 · 引擎重启后清空';
 
   @override
@@ -9827,6 +9891,19 @@ class L10nZh extends L10n {
   String get phoneDndConnectPortHint => '在系统「无线调试」首页查看「IP 地址和端口」，填写冒号后的端口。请不要使用配对码页面的端口。';
 
   @override
+  String get phoneLaunchBionic => '系统库启动';
+
+  @override
+  String get phoneBionicLimits =>
+      '这台手机的运行环境里没有 git 和 python，所以以下功能在 bionic 下不可用：从 Git 安装插件、依赖 python 的插件和技能、带原生组件的第三方插件、本地语音识别、终端、Office 转 PDF。';
+
+  @override
+  String get phoneBionicVoiceUnavailable => '这台手机的运行环境里没有本地语音识别需要的组件，本地语音模型不可用。';
+
+  @override
+  String get phoneBionicTerminalUnavailable => '这台手机的运行环境里没有终端需要的组件，本机引擎的终端不可用。';
+
+  @override
   String get phoneTaskResultReady => '任务完成 · 查看结果';
 
   @override
@@ -9937,6 +10014,277 @@ class L10nZh extends L10n {
 
   @override
   String get phoneKeepFailed => '没连上；下次打开 App 或开始操控时再试';
+
+  @override
+  String get phoneRelayTitle => 'Mac 中继';
+
+  @override
+  String get phoneRelaySubtitle => '卓易通里没有无障碍服务，手机操控经你的 Mac 完成';
+
+  @override
+  String get phoneRelayStepGoPair => '去配对';
+
+  @override
+  String get phoneRelayStepGoFix => '去处理';
+
+  @override
+  String phoneRelayStepOk(String model) {
+    return '已连接 · $model';
+  }
+
+  @override
+  String get phoneRelayStepOkNoModel => '已连接';
+
+  @override
+  String get phoneRelayReadScreenFirst => '先完成 Mac 中继配对';
+
+  @override
+  String phoneRelayStatusLine(String state) {
+    return 'Mac 中继：$state';
+  }
+
+  @override
+  String get phoneRelayStateOk => '已连接';
+
+  @override
+  String get phoneRelayStateUnreachable => '连不上 Mac';
+
+  @override
+  String get phoneRelayStateUnauthorized => '需要重新配对';
+
+  @override
+  String get phoneRelayStateHalted => '已暂停';
+
+  @override
+  String get phoneRelayStateDeviceOffline => 'Mac 在线，连不上手机';
+
+  @override
+  String get phoneRelayStateDeviceUnauthorized => '手机未授权这台 Mac';
+
+  @override
+  String get phoneRelayStateLocked => '手机已锁屏';
+
+  @override
+  String get phoneRelayStateUnconfigured => '还没有配对';
+
+  @override
+  String get phoneRelayHintOk => 'Mac 和手机都在线。回到对话里说要做的事就行。';
+
+  @override
+  String get phoneRelayHintUnreachable =>
+      '手机连不到 Mac 上的中继。确认 Mac 开着、中继在运行（Mac 终端运行 dsh-relay status）、手机和 Mac 在同一个网络里，然后点测试连接。';
+
+  @override
+  String get phoneRelayHintUnauthorized => 'Mac 不认这部手机的配对了（授权被撤销，或中继的证书变了）。在 Mac 终端运行 dsh-relay pair 取新的配对码，再在下面重新配对。';
+
+  @override
+  String get phoneRelayHintHalted => 'Mac 上的中继被暂停，手机上的操作不会执行。在 Mac 终端运行 dsh-relay resume 即可恢复，不用重新配对。';
+
+  @override
+  String get phoneRelayHintDeviceOffline => '中继在线，但 Mac 连不上这部手机。插上 USB，或在手机开着无线调试时点下面的「更新无线调试地址」。';
+
+  @override
+  String get phoneRelayHintDeviceUnauthorized => '手机还没有允许这台 Mac 调试。看一眼手机屏幕，在弹出的提示里点允许。';
+
+  @override
+  String get phoneRelayHintLocked => '解锁手机后再下达任务。锁屏时不会执行任何操作。';
+
+  @override
+  String get phoneRelayHintUnconfigured => '先在 Mac 上装好中继，再在下面配对。装法见用户指南「手机操控」。';
+
+  @override
+  String get phoneRelayPairTitle => '配对';
+
+  @override
+  String get phoneRelayPairHint => '在 Mac 终端运行 dsh-relay pair。终端会显示 Mac 的地址和一次性配对码，5 分钟内有效。';
+
+  @override
+  String get phoneRelayAddrLabel => 'Mac 地址';
+
+  @override
+  String get phoneRelayAddrHelper => '形如 192.0.2.10:8731';
+
+  @override
+  String get phoneRelayCodeLabel => '配对码';
+
+  @override
+  String get phoneRelayCodeHelper => '只在这里输入一次，不保存、不进剪贴板、不写日志';
+
+  @override
+  String get phoneRelayPair => '配对';
+
+  @override
+  String get phoneRelayPairing => '正在配对…';
+
+  @override
+  String get phoneRelayPaired => '已配对';
+
+  @override
+  String get phoneRelayDeviceTitle => '当前设备';
+
+  @override
+  String get phoneRelayDeviceModel => '机型';
+
+  @override
+  String get phoneRelayDeviceVia => '连接方式';
+
+  @override
+  String get phoneRelayViaUsb => 'USB';
+
+  @override
+  String get phoneRelayViaTcp => '无线调试';
+
+  @override
+  String get phoneRelayDeviceForeground => '前台应用';
+
+  @override
+  String get phoneRelayDeviceUnknown => '未知';
+
+  @override
+  String get phoneRelayLastOk => '最近一次成功';
+
+  @override
+  String get phoneRelayNever => '还没有成功过';
+
+  @override
+  String get phoneRelayAddr => 'Mac 地址';
+
+  @override
+  String get phoneRelayManageTitle => '管理';
+
+  @override
+  String get phoneRelayTest => '测试连接';
+
+  @override
+  String get phoneRelayTestHint => '读一次手机屏幕，确认整条链路通了';
+
+  @override
+  String get phoneRelayTesting => '正在测试…';
+
+  @override
+  String phoneRelayTestOk(String model) {
+    return '连接正常 · $model';
+  }
+
+  @override
+  String get phoneRelayTestOkNoModel => '连接正常';
+
+  @override
+  String get phoneRelayTarget => '更新无线调试地址';
+
+  @override
+  String get phoneRelayTargetHint => '手机的无线调试端口变了时，填新的 ip:端口';
+
+  @override
+  String get phoneRelayTargetLabel => '无线调试地址';
+
+  @override
+  String get phoneRelayTargetHelper => '形如 192.0.2.20:46225，在手机的无线调试页能看到';
+
+  @override
+  String get phoneRelayTargetDone => '无线调试地址已更新';
+
+  @override
+  String get phoneRelayHalt => '停止中继';
+
+  @override
+  String get phoneRelayHaltHint => '让 Mac 立即停下所有操作；要恢复，在 Mac 终端运行 dsh-relay resume';
+
+  @override
+  String get phoneRelayHaltDone => '已通知 Mac 暂停';
+
+  @override
+  String get phoneRelayRepair => '重新配对';
+
+  @override
+  String get phoneRelayRepairHint => '换了 Mac，或配对失效时用';
+
+  @override
+  String get phoneRelayForget => '忘记这台 Mac';
+
+  @override
+  String get phoneRelayForgetHint => '只删除这部手机上的配对';
+
+  @override
+  String get phoneRelayForgetTitle => '忘记这台 Mac？';
+
+  @override
+  String get phoneRelayForgetBody => '只会删除这部手机上的配对。Mac 上的授权还在，要撤销请在 Mac 终端运行 dsh-relay revoke。';
+
+  @override
+  String get phoneRelayForgetConfirm => '忘记';
+
+  @override
+  String get phoneRelayForgot => '已忘记这台 Mac';
+
+  @override
+  String get phoneRelayUpdate => '更新';
+
+  @override
+  String get phoneRelayErrorBadAddress => '地址格式不对，应该是 ip:端口，例如 192.0.2.10:8731';
+
+  @override
+  String get phoneRelayErrorUnauthorized => '配对码不对或已过期。回到 Mac 终端重新运行 dsh-relay pair，用新的配对码再试';
+
+  @override
+  String get phoneRelayErrorPinMismatch => '这台 Mac 没能证明自己就是配对码的发出方，已停止。确认地址没填错、网络可信后重试';
+
+  @override
+  String get phoneRelayErrorRelayUnreachable => '连不上 Mac 上的中继。确认 Mac 开着、中继在运行、手机和 Mac 在同一个网络里';
+
+  @override
+  String get phoneRelayErrorForbiddenSource => 'Mac 拒绝了这部手机的网络地址。检查手机和 Mac 是否在同一个局域网（或 Tailscale）里';
+
+  @override
+  String get phoneRelayErrorDeviceLocked => '手机已锁屏，解锁后再试';
+
+  @override
+  String get phoneRelayErrorHalted => 'Mac 上的中继被暂停了。在 Mac 终端运行 dsh-relay resume';
+
+  @override
+  String get phoneRelayErrorDeviceOffline => 'Mac 连不上这部手机。插上 USB，或更新无线调试地址';
+
+  @override
+  String get phoneRelayErrorDeviceUnauthorized => '手机还没有允许这台 Mac 调试，请在手机上点允许';
+
+  @override
+  String get phoneRelayErrorDeviceTimeout => '手机上的这一步超时了，稍后再试';
+
+  @override
+  String get phoneRelayErrorBusy => 'Mac 上前面的操作还没结束，稍后再试';
+
+  @override
+  String get phoneRelayErrorUnconfigured => '还没有配对';
+
+  @override
+  String get phoneRelayErrorUnknown => '没有成功';
+
+  @override
+  String get pluginsInstallGitRefusedBionic => '这台手机的运行环境里没有 git，不能从 Git 来源安装插件';
+
+  @override
+  String get pluginsInstallGitRefusedBionicHint => '换成市场里的 npm 版本；没有 npm 版本的，在电脑上的 DSH 里安装。';
+
+  @override
+  String get searchKwPhoneRelay => 'Mac 中继,中继,卓易通,鸿蒙,配对,hdc,relay,harmony';
+
+  @override
+  String get phoneRelayRowHint => '卓易通上经 Mac 操作手机';
+
+  @override
+  String get phoneRelayStateStoreUnreadable => '配对已失效，请重新配对';
+
+  @override
+  String get phoneRelayHintStoreUnreadable => '手机上保存的配对记录读不出来了（系统密钥变了或文件损坏）。在 Mac 终端运行 dsh-relay pair 取新的配对码，再在下面重新配对。';
+
+  @override
+  String get phoneRelayErrorStoreFailed => '手机没能保存配对记录（系统密钥不可用或写盘失败）。配对码还没有用掉，再试一次即可';
+
+  @override
+  String get phoneRelayErrorBadArgs => '请求参数不对，请检查地址后重试';
+
+  @override
+  String get phoneRelayErrorInternal => 'Mac 中继出了内部错误，稍后再试';
 
   @override
   String get phoneModeTitle => '选择确认方式';

@@ -1,0 +1,19 @@
+{"attributes":{"bounds":"[0,0][1320,2120]"},"children":[
+ {"attributes":{"bundleName":"com.huawei.hmos.settings","abilityName":"com.huawei.hmos.settings.MainAbility","pagePath":"pages/Index","type":"Stack","bounds":"[0,117][1320,2120]","visible":"true","enabled":"true","opacity":"1.0"},"children":[
+  {"attributes":{"type":"Column","bounds":"[0,117][1320,2120]","visible":"true","enabled":"true"},"children":[
+   {"attributes":{"type":"Text","text":"设置","bounds":"[48,160][300,240]","visible":"true","enabled":"true"},"children":[]},
+   {"attributes":{"type":"Row","bounds":"[24,300][1296,420]","clickable":"true","visible":"true","enabled":"true"},"children":[
+     {"attributes":{"type":"Text","text":"蓝牙","bounds":"[60,330][300,390]","visible":"true","enabled":"true"},"children":[]},
+     {"attributes":{"type":"Toggle","bounds":"[1150,330][1270,390]","checkable":"true","checked":"true","clickable":"true","visible":"true","enabled":"true"},"children":[]}]},
+   {"attributes":{"type":"Row","bounds":"[24,430][1296,550]","clickable":"true","visible":"true","enabled":"false"},"children":[
+     {"attributes":{"type":"Text","text":"飞行模式","bounds":"[60,460][300,520]","visible":"true","enabled":"true"},"children":[]}]},
+   {"attributes":{"type":"List","bounds":"[0,560][1320,1900]","scrollable":"true","visible":"true","enabled":"true"},"children":[
+     {"attributes":{"type":"Text","text":"WLAN","description":"无线网络","bounds":"[60,600][400,660]","visible":"true","enabled":"true"},"children":[]},
+     {"attributes":{"type":"Text","text":"隐藏项","bounds":"[60,700][400,760]","visible":"false","enabled":"true"},"children":[]},
+     {"attributes":{"type":"Stack","bounds":"[0,0][0,0]","visible":"true","enabled":"true"},"children":[]}]},
+   {"attributes":{"type":"TextInput","text":"","hint":"请输入Wi-Fi密码","bounds":"[60,1920][1260,2040]","focused":"true","visible":"true","enabled":"true"},"children":[]},
+   {"attributes":{"type":"TextInput","text":"","hint":"备注","bounds":"[60,2050][1260,2110]","visible":"true","enabled":"true"},"children":[]},
+   {"attributes":{"type":"Stack","bounds":"[0,0][1320,100]","visible":"true","enabled":"true"},"children":[]}]}]},
+ {"attributes":{"bundleName":"com.ohos.sceneboard","abilityName":"","pagePath":"","type":"WindowScene","bounds":"[0,0][1320,174]","visible":"true","enabled":"true"},"children":[
+   {"attributes":{"type":"TextClock","text":"10:31","bounds":"[48,60][200,120]","visible":"true","enabled":"true"},"children":[]}]}
+]}

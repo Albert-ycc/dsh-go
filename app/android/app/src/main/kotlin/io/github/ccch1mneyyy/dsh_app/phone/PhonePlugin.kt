@@ -138,6 +138,13 @@ class PhonePlugin : FlutterPlugin, ActivityAware, MethodChannel.MethodCallHandle
                     if (ok && !enabled) control.background.setBackgroundMode("off")["ok"] == true else ok
                 }
             }
+            // Mac 中继（卓易通）：手 = auto | a11y | mac；令牌不出原生层。
+            "setHand" -> result.success(control.setHand(call.argument<String>("hand").orEmpty()))
+            "relayPair" -> async(result) { control.relayPair(call.argument<String>("addr").orEmpty(), call.argument<String>("code").orEmpty()) }
+            "relayTest" -> async(result) { control.relayTest() }
+            "relaySetTarget" -> async(result) { control.relaySetTarget(call.argument<String>("addr").orEmpty()) }
+            "relayHalt" -> async(result, shortControl = true) { control.relayHalt() }
+            "relayForget" -> result.success(control.relayForget())
             "openAccessibilitySettings" -> result.success(startActivity(control.accessibilitySettingsIntent()))
             "openAppDetails" -> result.success(startActivity(control.appDetailsIntent()))
             "testScreen" -> async(result) { control.testScreen() }

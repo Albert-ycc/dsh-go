@@ -249,6 +249,7 @@
     <string name="safe_normal_recovered">The main configuration has run for 2 minutes. Normal mode restored.</string>
     <string name="safe_probation_failed">Normal mode couldn’t start. Returned to Safe mode.</string>
     <string name="safe_auto_started">DSH failed to start twice and opened in Safe mode. Your chats are safe.</string>
+    <string name="engine_family_switched">This phone blocks the standard engine, so DSH switched to the phone-native engine.</string>
     <string name="safe_patch_hazard">This global patch applies to every configuration, including Safe mode, and may be preventing DSH from starting.</string>
     <string name="safe_env_hazard">%1$s are set in .env. DSH won’t start with these variables set there.</string>
     <string name="safe_config_missing">Main configuration profiles/web/package.json not found</string>

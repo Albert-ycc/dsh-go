@@ -703,5 +703,26 @@
         "type": "int"
       }
     }
-  }
+  },
+  "engineFamilyTitle": "运行环境类型",
+  "engineFamilyAuto": "自动",
+  "engineFamilyAutoHint": "按这台手机的情况选择，推荐。",
+  "engineFamilyForceGlibc": "强制 glibc",
+  "engineFamilyGlibcHint": "标准 Linux 环境，功能完整。部分手机（例如鸿蒙卓易通）的系统会拦截，启动不了。",
+  "engineFamilyForceBionic": "强制 bionic",
+  "engineFamilyBionicHint": "直接用手机系统自带的库运行，供鸿蒙卓易通使用。里面没有 git、python，部分功能不可用。",
+  "engineFamilyBionicMissing": "这台手机没有 bionic 运行包。",
+  "engineFamilyStopFirst": "请先停止本机引擎，再切换运行环境。",
+  "engineFamilyChangeFailed": "未能切换运行环境，请停止本机引擎后重试。",
+  "engineFamilyCurrent": "当前运行环境",
+  "engineFamilyGlibcName": "glibc（标准 Linux）",
+  "engineFamilyBionicName": "bionic（手机系统库）",
+  "engineFamilyReasonLabel": "判定原因",
+  "engineFamilyReasonOverride": "你在上面手动指定了",
+  "engineFamilyReasonFallback": "glibc 启动时被系统终止，已自动改用 bionic；App 带来新的运行环境后会再试一次 glibc",
+  "engineFamilyReasonSeLinux": "系统的安全策略限制了标准 Linux 环境",
+  "engineFamilyReasonProbe": "系统拦截了标准 Linux 环境启动所必需的系统调用",
+  "engineFamilyReasonDefault": "没有发现限制，使用标准 Linux 环境",
+  "engineFamilyIndependentNote": "切换运行环境后，对话、插件和设置各自独立，不会迁移。回退到 bionic 后，原来的 glibc 运行环境仍占用存储，需要时用「重置运行环境」清理。",
+  "engineFamilyGlibcMissing": "这个安装包没有 glibc 运行包。"
 }

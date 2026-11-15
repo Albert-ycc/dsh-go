@@ -1,0 +1,143 @@
+{
+  "types": {
+    "Button": {
+      "cls": "android.widget.Button",
+      "role": "button"
+    },
+    "Toggle": {
+      "cls": "android.widget.Switch",
+      "role": "switch"
+    },
+    "Checkbox": {
+      "cls": "android.widget.CheckBox",
+      "role": "checkbox"
+    },
+    "Radio": {
+      "cls": "android.widget.RadioButton",
+      "role": "radio"
+    },
+    "Slider": {
+      "cls": "android.widget.SeekBar",
+      "role": "slider"
+    },
+    "Select": {
+      "cls": "android.widget.Spinner",
+      "role": "combobox"
+    },
+    "TextInput": {
+      "cls": "android.widget.EditText",
+      "editable": true
+    },
+    "TextArea": {
+      "cls": "android.widget.EditText",
+      "editable": true
+    },
+    "List": {
+      "cls": "androidx.recyclerview.widget.RecyclerView",
+      "scroll": true
+    },
+    "Grid": {
+      "cls": "androidx.recyclerview.widget.RecyclerView",
+      "scroll": true
+    },
+    "Scroll": {
+      "cls": "androidx.recyclerview.widget.RecyclerView",
+      "scroll": true
+    },
+    "WaterFlow": {
+      "cls": "androidx.recyclerview.widget.RecyclerView",
+      "scroll": true
+    },
+    "Tabs": {
+      "cls": "android.widget.TabWidget",
+      "role": "tab"
+    },
+    "TabBar": {
+      "cls": "android.widget.TabWidget",
+      "role": "tab"
+    },
+    "TabContent": {
+      "cls": "android.widget.TabWidget",
+      "role": "tab"
+    },
+    "Image": {
+      "cls": "android.widget.ImageView",
+      "role": "image"
+    },
+    "SymbolGlyph": {
+      "cls": "android.widget.ImageView",
+      "role": "image"
+    },
+    "Text": {
+      "cls": "android.widget.TextView"
+    },
+    "SearchField": {
+      "cls": "android.widget.EditText",
+      "editable": true
+    }
+  },
+  "androidEditable": [
+    "android.widget.EditText",
+    "android.widget.AutoCompleteTextView",
+    "android.widget.MultiAutoCompleteTextView"
+  ],
+  "pureContainers": [
+    "Stack",
+    "Row",
+    "Column",
+    "RelativeContainer",
+    "Flex",
+    "android.widget.FrameLayout",
+    "ListItem",
+    "ListItemGroup",
+    "Navigation",
+    "NavBar",
+    "NavBarContent",
+    "NavDestination",
+    "NavDestinationContent",
+    "NavigationContent",
+    "NavRouter",
+    "TitleBar",
+    "HdsTitleBar",
+    "SheetWrapper",
+    "SheetPage",
+    "__Common__",
+    "root",
+    ""
+  ],
+  "systemBundles": [
+    "com.ohos.sceneboard",
+    "com.ohos.systemui",
+    "com.huawei.hmos.inputmethod",
+    "com.huawei.hmos.ime"
+  ],
+  "passwordWords": [
+    "密码",
+    "口令",
+    "验证码",
+    "password",
+    "passwd",
+    "pin码",
+    "pin code",
+    "passcode"
+  ],
+  "dropTypes": [
+    "Divider",
+    "Mask",
+    "MaskBlur",
+    "Circle",
+    "Canvas",
+    "EffectComponent",
+    "DepthComponent",
+    "LoadingProgress",
+    "metaballNode",
+    "TextClock",
+    "ScrollBar"
+  ],
+  "ignoreClickable": [
+    "Search"
+  ],
+  "inputMethodBundles": [
+    "com.huawei.hmos.inputmethod"
+  ]
+}

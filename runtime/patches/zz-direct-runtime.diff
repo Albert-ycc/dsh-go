@@ -1,4 +1,4 @@
-# dsh-go direct engine: typed path boundaries, L2S refusal and node-pty invocation.
+# dsh-go direct engine: typed path boundaries (incl. workspace registry, directory picker, bash workdir), L2S refusal and node-pty invocation.
 # No global fs or tool-output rewriting; absent preload leaves proot behavior unchanged.
 --- a/node_modules/@deepseek-ai/dsh-fs-local/lib/index.js
 +++ b/node_modules/@deepseek-ai/dsh-fs-local/lib/index.js
@@ -162,3 +162,89 @@
  		} catch (error) {
  			throw new Error(`failed to ensure project directory "${cwd}": ${String(error)}`, { cause: error });
  		}
+--- a/node_modules/@deepseek-ai/dsh-api-workspace-controller/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-api-workspace-controller/lib/index.js
+@@ -17,7 +17,7 @@
+ function workspaceView(workspace) {
+ 	return {
+ 		workspaceId: workspace.id,
+-		path: workspace.path,
++		path: globalThis[Symbol.for("dsh.go.direct")]?.toGuest(workspace.path) ?? workspace.path,
+ 		title: workspace.title,
+ 		sessionIds: [...workspace.sessionIds],
+ 		createdAt: workspace.createdAt,
+@@ -28,7 +28,7 @@
+ 	const record = workspaceRecord.parse(value);
+ 	return {
+ 		workspaceId: WorkspaceId(workspaceId),
+-		path: record.path,
++		path: globalThis[Symbol.for("dsh.go.direct")]?.toGuest(record.path) ?? record.path,
+ 		title: record.title,
+ 		sessionIds: [...record.sessionIds],
+ 		createdAt: record.createdAt,
+--- a/node_modules/@deepseek-ai/dsh-host-directory-picker-browse/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-host-directory-picker-browse/lib/index.js
+@@ -163,9 +163,10 @@
+ 		return this.browseCapability;
+ 	}
+ 	async list(path, signal) {
++		const direct = globalThis[Symbol.for("dsh.go.direct")];
+ 		const home = homedir();
+ 		if (path !== void 0 && !fullyQualified(path)) throw new DirectoryPickerError("directory-unreadable", path, `cannot list "${path}": not a fully qualified path`);
+-		const target = resolve(path ?? home);
++		const target = resolve(direct?.toHost(path) ?? path ?? home);
+ 		const keep = this.config.maxEntries + 1;
+ 		const window = [];
+ 		let evicted = false;
+@@ -208,6 +209,13 @@
+ 			}
+ 			entries.push(row);
+ 		}
++		if (direct) return {
++			path: direct.toGuest(target),
++			home: direct.toGuest(home),
++			crumbs: ancestryCrumbs(direct.toGuest(target)),
++			entries: entries.map((row) => ({ ...row, path: direct.toGuest(row.path) })),
++			truncated
++		};
+ 		return {
+ 			path: target,
+ 			home,
+@@ -218,12 +226,13 @@
+ 	}
+ 	async createDirectory(path, name) {
+ 		if (!fullyQualified(path)) throw new DirectoryPickerError("directory-create-failed", path, `cannot create under "${path}": not a fully qualified parent path`);
+-		const parent = resolve(path);
++		const direct = globalThis[Symbol.for("dsh.go.direct")];
++		const parent = resolve(direct?.toHost(path) ?? path);
+ 		if (name.trim() === "" || name === "." || name === ".." || /[/\\]/.test(name)) throw new DirectoryPickerError("directory-create-failed", join(parent, name), `"${name}" is not a single path segment`);
+ 		const target = join(parent, name);
+ 		try {
+ 			await mkdir(target);
+-			return target;
++			return direct?.toGuest(target) ?? target;
+ 		} catch (error) {
+ 			if (typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST") throw new DirectoryPickerError("directory-exists", target, `${target} already exists`);
+ 			throw new DirectoryPickerError("directory-create-failed", target, `cannot create ${target}: ${messageOf(error)}`);
+--- a/node_modules/@deepseek-ai/dsh-tool-bash/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-tool-bash/lib/index.js
+@@ -289,7 +289,7 @@
+ function resolveWorkdir(modelWorkdir, sessionCwd) {
+ 	if (modelWorkdir === void 0) return sessionCwd;
+ 	if (sessionCwd !== void 0 && !isAbsolute(modelWorkdir)) return `${sessionCwd}${sep}${modelWorkdir}`;
+-	return modelWorkdir;
++	return globalThis[Symbol.for("dsh.go.direct")]?.toHost(modelWorkdir) ?? modelWorkdir;
+ }
+ /** Detach the executor DTO from readonly Service Definition types into plain JSON data. */
+ function canonicalBashResult(result, cwd) {
+--- a/node_modules/@deepseek-ai/dsh-workspace/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-workspace/lib/index.js
+@@ -47,7 +47,7 @@
+ */
+ async function realpathNormalize(path) {
+ 	if (!fullyQualifiedWorkspacePath(path)) throw new TypeError(`Workspace path is not fully qualified: '${path}'`);
+-	return await realpath(path);
++	return await realpath(globalThis[Symbol.for("dsh.go.direct")]?.toHost(path) ?? path);
+ }
+ //#endregion
+ //#region lib/types/entity.js

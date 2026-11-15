@@ -16,11 +16,22 @@ String chatErrorText(Object error, {required String action}) {
       'session/attachment-invalid' => appL10n.stateChatAttachmentInvalid,
       'session/fork-unavailable' => appL10n.stateChatForkUnavailable,
       'FRAME_TOO_LARGE' => appL10n.stateChatImagesTooLarge,
-      _ => engineErrorReason(error),
+      _ => engineErrorReason(error) ?? _rawReason(error),
     },
     // Uploads and exports go over HTTP: any other status means no engine.
     DshHttpException() => engineErrorReason(error) ?? appL10n.commonEngineUnreachable,
     _ => engineErrorReason(error),
   };
   return reason == null ? action : appL10n.stateActionReason(action, reason);
+}
+
+/// The engine's own words for a code the app has no sentence for: the code,
+/// the message cut to about 120 characters, and the path it names, so a
+/// failure on a phone can be read without a log. `debugPrint` above is the
+/// only log the app keeps for this; there is no ring buffer to write to.
+String _rawReason(DshRemoteException error) {
+  final message = error.message.trim();
+  final path = error.details['path'];
+  final text = message.length > 120 ? '${message.substring(0, 119)}…' : message;
+  return [error.code, if (text.isNotEmpty) text, if (path is String && path.isNotEmpty) path].join(' · ');
 }

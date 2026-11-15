@@ -23,6 +23,8 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
   Widget build(BuildContext context) {
     final runtime = ref.watch(localRuntimeProvider);
     final status = runtime.status;
+    // bionic 是子进程直接起，没有 PRoot 可绕，直接启动开关无意义。
+    if (status.isBionic) return const SizedBox.shrink();
     final l10n = context.l10n;
     final stopped = !status.phase.isBusy && status.phase != RuntimePhase.running;
     final enabled =

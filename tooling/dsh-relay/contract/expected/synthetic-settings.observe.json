@@ -1,0 +1,101 @@
+{
+  "display": {
+    "id": 0,
+    "width": 1320,
+    "height": 2120
+  },
+  "locked": false,
+  "secureKeyboard": false,
+  "main": 0,
+  "windows": [
+    {
+      "bundle": "com.huawei.hmos.settings",
+      "ability": "com.huawei.hmos.settings.MainAbility",
+      "page": "pages/Index",
+      "kind": "app",
+      "bounds": [0,117,1320,2120],
+      "root": {
+        "cls": "Column",
+        "raw": "Column",
+        "bounds": [0,117,1320,2120],
+        "children": [
+          {
+            "cls": "android.widget.TextView",
+            "raw": "Text",
+            "text": "设置",
+            "bounds": [48,160,300,240]
+          },
+          {
+            "cls": "android.view.View",
+            "raw": "Row",
+            "role": "switch",
+            "text": "蓝牙",
+            "bounds": [24,300,1296,420],
+            "flags": [
+              "click",
+              "check",
+              "checked"
+            ]
+          },
+          {
+            "cls": "android.view.View",
+            "raw": "Row",
+            "text": "飞行模式",
+            "bounds": [24,430,1296,550],
+            "flags": [
+              "click"
+            ],
+            "enabled": false
+          },
+          {
+            "cls": "androidx.recyclerview.widget.RecyclerView",
+            "raw": "List",
+            "bounds": [0,560,1320,1900],
+            "flags": [
+              "scroll"
+            ],
+            "children": [
+              {
+                "cls": "android.widget.TextView",
+                "raw": "Text",
+                "text": "WLAN",
+                "desc": "无线网络",
+                "bounds": [60,600,400,660]
+              }
+            ]
+          },
+          {
+            "cls": "android.widget.EditText",
+            "raw": "TextInput",
+            "hint": "请输入Wi-Fi密码",
+            "bounds": [60,1920,1260,2040],
+            "flags": [
+              "focused",
+              "editable",
+              "password"
+            ]
+          },
+          {
+            "cls": "android.widget.EditText",
+            "raw": "TextInput",
+            "hint": "备注",
+            "bounds": [60,2050,1260,2110],
+            "flags": [
+              "editable"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "bundle": "com.ohos.sceneboard",
+      "ability": "",
+      "page": "",
+      "kind": "system",
+      "bounds": [0,0,1320,174],
+      "root": null
+    }
+  ],
+  "nodes": 8,
+  "truncated": false
+}

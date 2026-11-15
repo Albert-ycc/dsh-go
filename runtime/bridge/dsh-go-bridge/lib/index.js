@@ -26,6 +26,7 @@ import { createSessionDeletion, sessionDeletionUnavailable } from "./session-del
 import { NativeCore } from "./native/core.js";
 import { effectiveLimits } from "./native/limits.js";
 import { STREAM_PATH, createNativeRoutes } from "./native/routes.js";
+import { WEB_POLYFILLS_SCRIPT } from "./web-polyfills.js";
 
 export const name = "dsh-go-bridge";
 
@@ -269,6 +270,10 @@ export function apply(ctx, config) {
   ctx.on("internal/plugin", () => native.markDirty());
   let pluginConfig;
   ctx.on("internal/status", (fiber) => { native.markDirty(); pluginConfig?.statusChanged(fiber); });
+  // First <head> row of the boot HTML: built-ins older app WebViews lack (web-polyfills.js).
+  ctx.on("webserver/index-inject", (table) => {
+    table.unshift({ kind: "script", placement: "head", text: WEB_POLYFILLS_SCRIPT });
+  });
 
   ctx.inject(["webServer"], (webCtx) => {
     const routeGuardMode = options.guardRoutes === false ? "off" : installFallbackGuard(webCtx, open);

@@ -1,0 +1,349 @@
+{
+  "display": {
+    "id": 0,
+    "width": 1320,
+    "height": 2120
+  },
+  "locked": false,
+  "secureKeyboard": false,
+  "main": 0,
+  "windows": [
+    {
+      "bundle": "com.huawei.hmos.settings",
+      "ability": "com.huawei.hmos.settings.MainAbility",
+      "page": "pages/home/SettingsHome",
+      "kind": "app",
+      "bounds": [0,117,1320,2120],
+      "root": {
+        "cls": "NavBar",
+        "raw": "NavBar",
+        "bounds": [0,117,1320,2120],
+        "children": [
+          {
+            "cls": "HdsTitleBar",
+            "raw": "HdsTitleBar",
+            "viewId": "HdsTitleBar",
+            "bounds": [0,117,1320,285],
+            "children": [
+              {
+                "cls": "android.widget.TextView",
+                "raw": "Text",
+                "text": "设置",
+                "bounds": [48,155,205,246]
+              },
+              {
+                "cls": "HdsMenuNode",
+                "raw": "HdsMenuNode",
+                "bounds": [1152,117,1272,285],
+                "children": [
+                  {
+                    "cls": "android.widget.Button",
+                    "raw": "Button",
+                    "role": "button",
+                    "bounds": [1152,141,1272,261],
+                    "flags": [
+                      "click"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "cls": "android.view.View",
+            "raw": "NavRouter",
+            "text": "用户",
+            "viewId": "Setting.Home",
+            "bounds": [0,285,1320,2036],
+            "flags": [
+              "click"
+            ],
+            "children": [
+              {
+                "cls": "androidx.recyclerview.widget.RecyclerView",
+                "raw": "List",
+                "bounds": [48,285,1272,2120],
+                "flags": [
+                  "scroll"
+                ],
+                "children": [
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Column",
+                    "viewId": "homPageSearchInputColumn",
+                    "bounds": [48,138,1272,258],
+                    "flags": [
+                      "click"
+                    ],
+                    "children": [
+                      {
+                        "cls": "Search",
+                        "raw": "Search",
+                        "viewId": "homPageSearchInput",
+                        "bounds": [48,138,1272,258],
+                        "children": [
+                          {
+                            "cls": "android.widget.EditText",
+                            "raw": "SearchField",
+                            "hint": "搜索设置项",
+                            "viewId": "__SearchField__homPageSearchInput",
+                            "bounds": [156,138,1176,258],
+                            "flags": [
+                              "click",
+                              "long",
+                              "editable"
+                            ]
+                          },
+                          {
+                            "cls": "android.widget.ImageView",
+                            "raw": "SymbolGlyph",
+                            "role": "image",
+                            "viewId": "__SearchField__Image__homPageSearchInput",
+                            "bounds": [84,174,132,222],
+                            "flags": [
+                              "click"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "cls": "Column",
+                    "raw": "Column",
+                    "bounds": [60,318,1260,732],
+                    "children": [
+                      {
+                        "cls": "android.view.View",
+                        "raw": "Column",
+                        "text": "用户",
+                        "viewId": "hms_account_home_settings",
+                        "bounds": [60,318,1260,558],
+                        "flags": [
+                          "click"
+                        ],
+                        "children": [
+                          {
+                            "cls": "Column",
+                            "raw": "Column",
+                            "bounds": [312,365,1188,512],
+                            "children": [
+                              {
+                                "cls": "android.widget.TextView",
+                                "raw": "Text",
+                                "text": "华为账号、付款与账单、云空间等",
+                                "bounds": [312,464,853,512]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "cls": "Flex",
+                        "raw": "Flex",
+                        "bounds": [60,570,1260,708],
+                        "children": [
+                          {
+                            "cls": "android.view.View",
+                            "raw": "Row",
+                            "text": "云空间",
+                            "viewId": "CloudSpaceCapsule_Row",
+                            "bounds": [84,570,642,708],
+                            "flags": [
+                              "click"
+                            ]
+                          },
+                          {
+                            "cls": "android.view.View",
+                            "raw": "Row",
+                            "text": "查找设备",
+                            "viewId": "FindDeviceCapsuleView_Row",
+                            "bounds": [678,570,1236,708],
+                            "flags": [
+                              "click"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "测试机",
+                    "viewId": "about_device",
+                    "bounds": [60,792,1260,936],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "WLAN",
+                    "viewId": "wifi_entry",
+                    "bounds": [60,996,1260,1140],
+                    "flags": [
+                      "click",
+                      "focused"
+                    ],
+                    "children": [
+                      {
+                        "cls": "Row",
+                        "raw": "Row",
+                        "bounds": [216,996,1187,1140],
+                        "children": [
+                          {
+                            "cls": "android.widget.TextView",
+                            "raw": "Text",
+                            "text": "WiFi-01",
+                            "viewId": "wifi_entry.result",
+                            "bounds": [906,1044,1187,1093]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "星闪和蓝牙",
+                    "viewId": "bluetooth_entry",
+                    "bounds": [60,1142,1260,1286],
+                    "flags": [
+                      "click"
+                    ],
+                    "children": [
+                      {
+                        "cls": "Row",
+                        "raw": "Row",
+                        "bounds": [216,1142,1187,1286],
+                        "children": [
+                          {
+                            "cls": "android.widget.TextView",
+                            "raw": "Text",
+                            "text": "已开启",
+                            "viewId": "bluetooth_entry.result",
+                            "bounds": [1060,1190,1187,1239]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "移动网络",
+                    "viewId": "mobile_network_entry",
+                    "bounds": [60,1288,1260,1432],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "多设备协同",
+                    "viewId": "more_connections_settings",
+                    "bounds": [60,1434,1260,1578],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "桌面、外屏和个性化",
+                    "viewId": "theme_settings",
+                    "bounds": [60,1638,1260,1782],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "显示和亮度",
+                    "viewId": "display_settings",
+                    "bounds": [60,1784,1260,1928],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "text": "声音和振动",
+                    "viewId": "volume_settings",
+                    "bounds": [60,1930,1260,2074],
+                    "flags": [
+                      "click"
+                    ]
+                  },
+                  {
+                    "cls": "android.view.View",
+                    "raw": "Row",
+                    "viewId": "systemui_notification_settings",
+                    "bounds": [60,2076,1260,2120],
+                    "flags": [
+                      "click"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "bundle": "com.ohos.sceneboard",
+      "ability": "",
+      "page": "",
+      "kind": "system",
+      "bounds": [0,0,1320,174],
+      "root": {
+        "cls": "WindowScene",
+        "raw": "WindowScene",
+        "viewId": "session33",
+        "bounds": [0,0,1320,174],
+        "children": [
+          {
+            "cls": "android.view.View",
+            "raw": "__Common__",
+            "text": "02, :, 22",
+            "viewId": "StatusBarBridgeView",
+            "bounds": [0,0,1320,174],
+            "flags": [
+              "click",
+              "long"
+            ],
+            "children": [
+              {
+                "cls": "Row",
+                "raw": "Row",
+                "text": "02, :, 22",
+                "desc": "长按时间切换显示格式",
+                "bounds": [56,22,177,94],
+                "flags": [
+                  "long"
+                ],
+                "children": [
+                  {
+                    "cls": "android.widget.TextView",
+                    "raw": "Text",
+                    "text": ":",
+                    "viewId": "TimeView_Text_timeText",
+                    "bounds": [110,36,123,81]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "nodes": 35,
+  "truncated": false
+}

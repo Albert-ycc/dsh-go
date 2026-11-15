@@ -34,6 +34,16 @@ Direct local engine launch is off by default; you turn it on under Developer opt
 
 After an upgrade from an earlier version, the first direct start tidies your plugin files once; the engine shows **Tidying plugin files** meanwhile. If the phone is short of space or the tidy-up doesn't finish, that start uses compatible launch, **Fallback reason** on the **Diagnostics** page says why, and the next start carries on. No files are lost.
 
+## The local runtime won't start (Zhuoyitong)
+
+Huawei's HarmonyOS Zhuoyitong blocks the standard Linux runtime (glibc) from starting, which shows up as the local engine failing to start over and over.
+
+1. Open the **Diagnostics** page and look at the current runtime and **Why** under **Runtime type**.
+2. The app has usually switched to bionic already. If it hasn't, stop the local engine, choose **Force bionic** under **Runtime type**, then start it. If **Force bionic** is greyed out, this install has no bionic runtime package this phone can use; use a remote host instead.
+3. Still failing: export a diagnostics bundle and report it. It carries the runtime type and why.
+
+When a feature doesn't work under bionic, it's because the runtime on this phone has no git, python or similar; the list is in [Engine and remote hosts](03-engine-hosts.md).
+
 ## Phone control doesn't work
 
 The top of the phone control page says what's missing:

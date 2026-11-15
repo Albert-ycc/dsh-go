@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
+import '../../runtime/runtime_state.dart';
 import '../../state/voice_model_state.dart';
 import '../../state/voice_settings.dart';
 import '../shell/page_frame.dart';
@@ -100,6 +101,8 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final selected = ref.watch(voiceSettingsProvider);
+    // bionic 运行环境里跑不了本地语音模型：入口收起，只留原因。
+    final bionic = ref.watch(localRuntimeProvider.select((r) => r.status.isBionic));
     return AppPage.list(
       title: l10n.voiceSettingsTitle,
       children: [
@@ -107,31 +110,39 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
           title: l10n.voiceModeSection,
           children: [
             for (final mode in VoiceMode.values)
-              Semantics(
-                checked: selected == mode,
-                inMutuallyExclusiveGroup: true,
-                child: SettingsTile(
-                  key: ValueKey('voice-mode-${mode.name}'),
-                  title: voiceModeLabel(l10n, mode),
-                  subtitle: switch (mode) {
-                    VoiceMode.auto => l10n.voiceModeAutoHint,
-                    VoiceMode.system => l10n.voiceModeSystemHint,
-                    VoiceMode.engine => l10n.voiceModeEngineHint,
-                  },
-                  trailing: SizedBox.square(
-                    dimension: 32,
-                    child: Icon(selected == mode ? AppIcons.radioOn : AppIcons.radioOff, size: 24),
+              if (!(bionic && mode == VoiceMode.engine))
+                Semantics(
+                  checked: selected == mode,
+                  inMutuallyExclusiveGroup: true,
+                  child: SettingsTile(
+                    key: ValueKey('voice-mode-${mode.name}'),
+                    title: voiceModeLabel(l10n, mode),
+                    subtitle: switch (mode) {
+                      VoiceMode.auto => l10n.voiceModeAutoHint,
+                      VoiceMode.system => l10n.voiceModeSystemHint,
+                      VoiceMode.engine => l10n.voiceModeEngineHint,
+                    },
+                    trailing: SizedBox.square(
+                      dimension: 32,
+                      child: Icon(selected == mode ? AppIcons.radioOn : AppIcons.radioOff, size: 24),
+                    ),
+                    onTap: () => unawaited(ref.read(voiceSettingsProvider.notifier).setMode(mode)),
                   ),
-                  onTap: () => unawaited(ref.read(voiceSettingsProvider.notifier).setMode(mode)),
                 ),
-              ),
           ],
         ),
-        SettingsSection(
-          title: l10n.voiceModelSection,
-          footer: Text(l10n.voiceModelFooter),
-          children: const [VoiceModelCard()],
-        ),
+        if (bionic)
+          SettingsSection(
+            title: l10n.voiceModelSection,
+            footer: Text(l10n.phoneBionicVoiceUnavailable, key: const ValueKey('voice-model-bionic')),
+            children: const [],
+          )
+        else
+          SettingsSection(
+            title: l10n.voiceModelSection,
+            footer: Text(l10n.voiceModelFooter),
+            children: const [VoiceModelCard()],
+          ),
       ],
     );
   }

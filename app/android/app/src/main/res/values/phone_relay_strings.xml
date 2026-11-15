@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="phone_relay_title">DSH Go · Mac relay</string>
+    <string name="phone_relay_state_ok">Connected to the Mac relay</string>
+    <string name="phone_relay_state_unconfigured">Mac relay is not set up. Pair it in Settings → Phone control.</string>
+    <string name="phone_relay_state_unreachable">Cannot reach the Mac relay. Check that the Mac is on, the relay is running and both are on the same network.</string>
+    <string name="phone_relay_state_unauthorized">The Mac relay no longer accepts this phone. Pair again.</string>
+    <string name="phone_relay_state_halted">The relay on the Mac is paused. Run dsh-relay resume on the Mac.</string>
+    <string name="phone_relay_state_device_offline">The Mac cannot reach this phone. Update the wireless debugging address, or plug in USB.</string>
+    <string name="phone_relay_state_device_unauthorized">This phone has not authorised the Mac yet. Tap Allow on the phone.</string>
+    <string name="phone_relay_state_locked">The phone is locked. Unlock it to continue.</string>
+    <string name="phone_relay_pair_wrong_code">The pairing code is wrong, expired or was tried too often. Run dsh-relay pair on the Mac again.</string>
+    <string name="phone_relay_state_store_unreadable">The saved Mac pairing can no longer be read. Pair again.</string>
+    <string name="phone_relay_store_failed">The phone could not save the pairing (the system key store is unavailable); nothing was left on the Mac. Try again later.</string>
+    <string name="phone_relay_pair_changed">The relay showed a different certificate than the one paired. Nothing was saved.</string>
+    <string name="phone_relay_bad_address">Write the Mac address as IP:port, for example 192.0.2.10:8731.</string>
+    <string name="phone_relay_bad_target">Write the wireless debugging address as IP:port, for example 192.0.2.20:46225.</string>
+    <string name="phone_relay_not_paired">Pair with the Mac relay first.</string>
+</resources>

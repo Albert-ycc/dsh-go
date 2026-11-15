@@ -27,6 +27,7 @@ docs/                        架构、发布、路线图、用户指南
 (cd packages/dsh_remote && dart pub get && dart analyze && dart test)
 (cd sdk/plugin-kit && npm install && npm test)
 node --test runtime/tests/*.test.mjs                               # 引擎桥/补丁测试
+node --test tooling/dsh-relay/tests/*.test.mjs                      # Mac 中继测试
 python3 app/tool/l10n_merge.py --check                             # 文案生成检查
 python3 app/tool/guide_sync.py --check                             # 用户指南同步检查
 tooling/build-apk.sh --build-name <x.y.z>                          # 构建 APK
@@ -59,7 +60,7 @@ tooling/build-apk.sh --build-name <x.y.z>                          # 构建 APK
 
 ### 凭据与隐私
 
-- 不记录、不回显、不持久化完整 API key、token、cookie、登录态。
+- 不记录、不回显、不持久化完整 API key、token、cookie、登录态。例外只有设备配对凭据：自连 ADB 的私钥与手机操控 Mac 中继的配对令牌，只存 App 私有目录（0600），中继令牌经 Android Keystore 密钥加密后落盘、明文只在 App 进程内存，不记日志、不回显、不进 Dart 层。
 - 诊断包和日志外发前人工检查；自动打码不能当成保证。
 
 ### Git 安全

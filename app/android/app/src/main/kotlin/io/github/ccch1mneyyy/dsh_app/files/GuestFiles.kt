@@ -2,6 +2,7 @@ package io.github.ccch1mneyyy.dsh_app.files
 
 import android.content.Context
 import io.github.ccch1mneyyy.dsh_app.runtime.PhoneStorage
+import io.github.ccch1mneyyy.dsh_app.runtime.RuntimeController
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -19,12 +20,19 @@ import java.nio.file.LinkOption
 object GuestFiles {
     private const val MAX_LINKS = 16
 
-    fun rootfs(context: Context): File = File(context.filesDir, "runtime/rootfs")
+    /** The active engine family's rootfs; [RuntimeController] alone decides which. */
+    fun rootfs(context: Context): File = RuntimeController.get(context).activeRootfs
 
     /** Host file for an absolute guest [path]; null when it is not a readable regular file. */
     fun resolve(context: Context, path: String): File? {
         if (!path.startsWith("/")) return null
         val rootfs = rootfs(context)
+        // bionic engines may report physical paths: already under the rootfs, nothing to map.
+        val rootCanonical = runCatching { rootfs.canonicalPath }.getOrNull()
+        if (rootCanonical != null && path.startsWith("$rootCanonical/")) {
+            val real = File(path).canonicalFile // `..` or a link cannot lead out of the rootfs
+            return real.takeIf { it.path.startsWith("$rootCanonical/") && it.isFile && it.canRead() }
+        }
         val pending = ArrayDeque(segments(path))
         val resolved = ArrayList<String>()
         var links = 0

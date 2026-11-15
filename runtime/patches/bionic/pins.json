@@ -1,0 +1,29 @@
+{
+  "patches": {
+    "bionic-attachment-durable-boundary.diff": {
+      "0.2.1-rc.4": {
+        "node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js": {
+          "after": "c503cfc4bda53e4b02daff05ee8977d10bcdbb6f520dcdfeb45003c45a1af136",
+          "before": "cd39685581b4573a453c6126f8ce73da0bf1257c378827ebb431d6d4064f7662"
+        }
+      }
+    },
+    "bionic-expose-internals.diff": {
+      "0.2.1-rc.4": {
+        "node_modules/@deepseek-ai/dsh-app-boot/lib/index.js": {
+          "after": "7248dab01a83391dd08ea7a368a3737db2297b18295f9b94411e9183931fe053",
+          "before": "2b7cc756a42b21c7204288b9f10b3f81d43bd9bec599a85072ac3753d292357e"
+        }
+      }
+    },
+    "bionic-flock-android.diff": {
+      "0.2.1-rc.4": {
+        "node_modules/@deepseek-ai/node-addon-system/lib/flock.js": {
+          "after": "28213e1feccdcf09b0dc2dfdee0f6be621baa027280e711e4b65944a1ce523c5",
+          "before": "e42af00c298d56322c073bf7cc66485096028318ab645a2e69dc2aa7481ba646"
+        }
+      }
+    }
+  },
+  "schema": 1
+}

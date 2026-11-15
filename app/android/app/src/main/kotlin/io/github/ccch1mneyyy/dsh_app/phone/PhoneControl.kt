@@ -26,7 +26,18 @@ import io.github.ccch1mneyyy.dsh_app.phone.a11y.A11yKeeper
 import io.github.ccch1mneyyy.dsh_app.phone.a11y.PhoneA11yService
 import io.github.ccch1mneyyy.dsh_app.phone.background.BackgroundControl
 import io.github.ccch1mneyyy.dsh_app.phone.background.SecureSettingsGrant
+import io.github.ccch1mneyyy.dsh_app.phone.relay.MacRelayDriver
+import io.github.ccch1mneyyy.dsh_app.phone.relay.PhoneHand
+import io.github.ccch1mneyyy.dsh_app.phone.relay.RelayClient
+import io.github.ccch1mneyyy.dsh_app.phone.relay.RelayCodes
+import io.github.ccch1mneyyy.dsh_app.phone.relay.RelayPairing
+import io.github.ccch1mneyyy.dsh_app.phone.relay.RelayResult
+import io.github.ccch1mneyyy.dsh_app.phone.relay.RelayStatus
+import io.github.ccch1mneyyy.dsh_app.phone.relay.RelaySystemApi
+import io.github.ccch1mneyyy.dsh_app.phone.relay.RelayTokenStore
+import io.github.ccch1mneyyy.dsh_app.runtime.EngineFamily
 import io.github.ccch1mneyyy.dsh_app.runtime.DshService
+import io.github.ccch1mneyyy.dsh_app.runtime.GuestPaths
 import io.github.ccch1mneyyy.dsh_app.shortcuts.EntryActivity
 import java.io.File
 import java.time.ZoneId
@@ -50,6 +61,18 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     val tasks = PhoneTasks()
     val log = ActionLog()
     val system = SystemActions(app)
+
+    // Mac 中继这只「手」：卓易通容器里无障碍用不了，读屏和点按经 Mac 上的 hdc 中继。
+    private val relayStore = RelayTokenStore(File(app.filesDir, "phone-relay"))
+    private val relay = RelayClient(relayStore, taskId = { tasks.snapshot().id })
+    private val relaySystem = RelaySystemApi(system, relay)
+    private val macDriver = MacRelayDriver(relay, SafetyRules.OWN_PACKAGE, { pkg -> label(pkg) ?: relaySystem.labelOf(pkg) }, ::relayUserText)
+    private val seLinuxDomain: String? by lazy { EngineFamily.readSeLinuxDomain() }
+    @Volatile private var relayLastOkAt = 0L
+    @Volatile private var relayStoppedTask = 0L
+
+    // stop 要在 2 秒内到 Mac：不排在 ticker 后面（ticker 里有会阻塞几秒的状态查询）。
+    private val relayStopper = Executors.newSingleThreadExecutor { r -> Thread(r, "dsh-phone-relay-stop").apply { isDaemon = true } }
     private val localizedUi = PhoneUiText { key, args ->
         when (key) {
             "phone_log_clipboard_write" -> return@PhoneUiText AppStrings.plural(app, R.plurals.phone_log_clipboard_write, args[0] as Int, *args.toTypedArray())
@@ -149,6 +172,101 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         ticker.scheduleWithFixedDelay({ tick() }, 2, 2, TimeUnit.SECONDS)
         // The app's start: a force stop took the accessibility service out of the settings.
         ticker.execute(::keep)
+        ticker.execute { if (macHand()) relaySystem.warm() }
+    }
+
+    // ── Hand: accessibility or the Mac relay ────────────────────────────────────────
+
+    /** The hand in effect: `a11y` or `mac` (`auto` picks `mac` on the Pura X container). */
+    fun hand(): String = PhoneHand.resolve(prefs.getString(K_HAND, null), seLinuxDomain)
+
+    fun setHand(choice: String): Boolean {
+        prefs.edit().putString(K_HAND, PhoneHand.normalize(choice)).apply()
+        emitStatus()
+        return true
+    }
+
+    private fun macHand() = hand() == PhoneHand.MAC
+
+    private fun relayUserText(state: String): String? {
+        val id = when (state) {
+            RelayStatus.OK -> R.string.phone_relay_state_ok
+            RelayStatus.UNCONFIGURED -> R.string.phone_relay_state_unconfigured
+            RelayStatus.STORE_UNREADABLE -> R.string.phone_relay_state_store_unreadable
+            RelayStatus.UNREACHABLE -> R.string.phone_relay_state_unreachable
+            RelayStatus.UNAUTHORIZED -> R.string.phone_relay_state_unauthorized
+            RelayStatus.HALTED -> R.string.phone_relay_state_halted
+            RelayStatus.DEVICE_OFFLINE -> R.string.phone_relay_state_device_offline
+            RelayStatus.DEVICE_UNAUTHORIZED -> R.string.phone_relay_state_device_unauthorized
+            RelayStatus.LOCKED -> R.string.phone_relay_state_locked
+            else -> return null
+        }
+        return AppStrings.get(app, id)
+    }
+
+    /** `PhoneStatus.relay` (§6.3). Asks the Mac at most every 5 s during a task, every 30 s otherwise. Off the main thread. */
+    private fun relayStatusMap(): Map<String, Any?> {
+        val s = RelayStatus.of(relay, if (tasks.snapshot().active) RelayClient.DEVICE_CACHE_MS else IDLE_RELAY_POLL_MS)
+        if (s.ok) relayLastOkAt = System.currentTimeMillis()
+        return linkedMapOf(
+            "configured" to relay.configured(),
+            "addr" to relayStore.load()?.addr,
+            "state" to s.state,
+            "device" to linkedMapOf("model" to s.device?.model, "via" to s.device?.via, "foreground" to macDriver.lastForeground()),
+            "lastOkAt" to relayLastOkAt.takeIf { it > 0 },
+            "containerLocked" to containerLocked(),
+        )
+    }
+
+    /** `relayPair`: the one-time code from `dsh-relay pair` on the Mac. Blocks (~1 s of key stretching); the plugin thread. */
+    fun relayPair(addr: String, code: String): Map<String, Any?> {
+        if (!validAddr(addr)) return mapOf("ok" to false, "code" to "bad_address", "reason" to AppStrings.get(app, R.string.phone_relay_bad_address))
+        return when (val out = RelayPairing.pair(addr.trim(), code, "DSH Go · ${Build.MODEL}", relayStore, relay)) {
+            is RelayPairing.Outcome.Paired -> { relaySystem.warm(); emitStatus(); mapOf("ok" to true) }
+            is RelayPairing.Outcome.Failed -> mapOf(
+                "ok" to false, "code" to out.error.code,
+                "reason" to when (out.error.code) {
+                    RelayCodes.UNAUTHORIZED, RelayCodes.FORBIDDEN_SOURCE -> AppStrings.get(app, R.string.phone_relay_pair_wrong_code)
+                    RelayCodes.PIN_MISMATCH -> AppStrings.get(app, R.string.phone_relay_pair_changed)
+                    RelayCodes.STORE_FAILED -> AppStrings.get(app, R.string.phone_relay_store_failed)
+                    else -> relayUserText(RelayStatus.UNREACHABLE)
+                },
+            )
+        }
+    }
+
+    /** `relayTest`: asks the Mac now and reads the screen's front app once. The plugin thread. */
+    fun relayTest(): Map<String, Any?> {
+        val s = RelayStatus.settle(relay)
+        if (s.ok) relayLastOkAt = System.currentTimeMillis()
+        val front = if (s.ok) macDriver.foregroundPackage() else null
+        return linkedMapOf(
+            "ok" to s.ok, "state" to s.state, "reason" to relayUserText(s.state),
+            "model" to s.device?.model, "via" to s.device?.via, "foreground" to front,
+        )
+    }
+
+    /** `relaySetTarget`: tells the Mac the phone's current wireless-debugging address. */
+    fun relaySetTarget(addr: String): Map<String, Any?> {
+        if (!relay.configured()) return mapOf("ok" to false, "reason" to AppStrings.get(app, R.string.phone_relay_not_paired))
+        if (!validAddr(addr)) return mapOf("ok" to false, "code" to "bad_address", "reason" to AppStrings.get(app, R.string.phone_relay_bad_target))
+        return when (val r = relay.target(addr.trim())) {
+            is RelayResult.Ok -> { emitStatus(); mapOf("ok" to true) }
+            is RelayResult.Err -> mapOf("ok" to false, "code" to r.error.code, "reason" to (r.error.message.ifEmpty { relayUserText(RelayStatus.UNREACHABLE) }))
+        }
+    }
+
+    /** `relayHalt`: the phone-side emergency stop. It can only stop; resuming is `dsh-relay resume` on the Mac. */
+    fun relayHalt(): Map<String, Any?> = when (val r = relay.halt()) {
+        is RelayResult.Ok -> { emitStatus(); mapOf("ok" to true) }
+        is RelayResult.Err -> mapOf("ok" to false, "code" to r.error.code, "reason" to relayUserText(RelayStatus.of(relay, 0).state))
+    }
+
+    /** `relayForget`: deletes the pairing on this phone only; the token on the Mac stays until `dsh-relay revoke`. */
+    fun relayForget(): Boolean {
+        relayStore.clear()
+        emitStatus()
+        return true
     }
 
     // ── Switch and app lists ────────────────────────────────────────────────────────
@@ -212,7 +330,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
      * the bridge and returns true (the launch then adds the `--patch` overlay). Otherwise makes
      * sure nothing is listening and returns false: DSH mounts no phone tools at all.
      */
-    fun prepareLaunch(rootfs: File, safe: Boolean, log: (String) -> Unit): Boolean {
+    fun prepareLaunch(rootfs: File, safe: Boolean, log: (String) -> Unit, paths: GuestPaths = GuestPaths.IDENTITY): Boolean {
         logger = log
         tasks.invalidateOwners()
         stopBridge()
@@ -224,7 +342,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
             return false
         }
         return try {
-            PhoneGuest.writeFiles(rootfs)
+            PhoneGuest.writeFiles(rootfs, paths)
             val ep = bridge.start(withTcp = prefs.getBoolean(K_TCP_FALLBACK, false))
             PhoneGuest.writeConfig(rootfs, ep)
             registerScreenOff()
@@ -322,12 +440,20 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
             Intent(app, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val from: Context = PhoneA11yService.instance ?: app
-        return try {
+        val started = try {
             from.startActivity(intent)
             true
         } catch (_: Exception) {
             false
         }
+        // 容器里的后台 startActivity 常被拦：再请 Mac 用 aa start 把 DSH Go 拉到前台（提示链多一级）。
+        if (macHand() && relay.configured()) {
+            ticker.schedule({
+                if (!prompts.appResumed()) runCatching { relay.launch(app.packageName, MainActivity::class.java.name) }
+            }, 800, TimeUnit.MILLISECONDS)
+            return true
+        }
+        return started
     }
 
     private fun onTask(s: PhoneTasks.Snapshot) {
@@ -342,6 +468,11 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
                 statusLine = null
             }
             runCatching { PhoneRegistry.overlayGate?.close { cleanup -> tasks.runIfInactive(s, cleanup) } }
+            // 停止要在 2 秒内生效：掐掉 Mac 上这个任务的在途命令，不靠手机侧超时。
+            if (s.stopped && macHand() && s.id != relayStoppedTask) {
+                relayStoppedTask = s.id
+                relayStopper.execute { runCatching { macDriver.stop(s.id) } }
+            }
             // One virtual display per task: release it when the task ends.
             // IPC must stay outside the PhoneTasks lock; the background owner
             // check and release are serialized with its next registration.
@@ -408,6 +539,10 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
+    /** 手机操控页的 Mac 中继页（P2-c 注册 `dshgo://open/phone-relay`）。 */
+    private fun relayPageIntent(): Intent = Intent(Intent.ACTION_VIEW, Uri.parse("dshgo://open/phone-relay"))
+        .setPackage(app.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
     fun appDetailsIntent(): Intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${app.packageName}"))
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
@@ -416,7 +551,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
      * whatever is in front (DSH's own settings page included; the own-app rule is for tool calls).
      */
     fun testScreen(): Map<String, Any?> {
-        val driver = PhoneRegistry.mainDriver
+        val driver = (if (macHand()) macDriver else PhoneRegistry.mainDriver)
             ?: return mapOf("ok" to false, "reason" to if (a11yEnabledInSettings()) AppStrings.get(app, R.string.phone_a11y_connecting) else AppStrings.get(app, R.string.phone_a11y_off))
         val outcome = core.worker.run(8_000, 15_000) {
             val av = driver.availability()
@@ -437,6 +572,9 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         "enabled" to isEnabled(),
         "bridgeListening" to bridge.listening,
         "a11y" to linkedMapOf("enabled" to a11yEnabledInSettings(), "serviceConnected" to (PhoneRegistry.mainDriver != null)),
+        "hand" to hand(),
+        "handSetting" to PhoneHand.normalize(prefs.getString(K_HAND, null)),
+        "relay" to relayStatusMap(),
         "overlay" to (PhoneRegistry.overlayGate != null),
         "notifications" to nm.areNotificationsEnabled(),
         "confirmationNotifications" to notificationGate.available(),
@@ -490,6 +628,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     }
 
     private fun keep() {
+        if (macHand()) return
         runCatching { A11yKeeper.check(app) }
     }
 
@@ -536,7 +675,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     private fun tick() {
         try {
             tasks.expireIdle()
-            A11yKeeper.check(app)
+            keep()
             pushIfChanged(force = false)
         } catch (_: Exception) {
         }
@@ -559,7 +698,26 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
 
     override fun enabled(): Boolean = isEnabled()
 
+    override fun strictSystemScroll(): Boolean = macHand()
+
+    /** 预算到期的那一步还在 Mac 队列里跑：让 Mac 取消这个任务的在途命令。 */
+    override fun onToolTimeout() {
+        if (!macHand()) return
+        val id = tasks.snapshot().id
+        relayStopper.execute { runCatching { macDriver.stop(id) } }
+    }
+
     override fun isLocked(): Boolean {
+        val km = app.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        val power = app.getSystemService(Context.POWER_SERVICE) as PowerManager
+        // 卓易通：容器里的锁屏状态不是手机的，只信中继最近一次读到的锁屏（不联网，主线程也会调到这里）；
+        // 容器自己的 keyguard / isInteractive 只作诊断，不参与拒绝（P4 H2）。
+        if (macHand()) return relay.cachedLocked() == true
+        return km.isKeyguardLocked || !power.isInteractive
+    }
+
+    /** 诊断用：容器自己看到的锁屏状态，不参与任何拒绝。 */
+    private fun containerLocked(): Boolean {
         val km = app.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         val power = app.getSystemService(Context.POWER_SERVICE) as PowerManager
         return km.isKeyguardLocked || !power.isInteractive
@@ -572,6 +730,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
      * connect). The main one may be on its way back (自动恢复无障碍): give it a few seconds.
      */
     override fun driver(screen: PhoneScreen): PhoneDriver? {
+        if (screen == PhoneScreen.MAIN && macHand()) return macDriver
         if (screen == PhoneScreen.MAIN && PhoneRegistry.mainDriver == null && A11yKeeper.check(app)) {
             val until = SystemClock.elapsedRealtime() + KEEPER_WAIT_MS
             while (PhoneRegistry.mainDriver == null && SystemClock.elapsedRealtime() < until) Thread.sleep(100)
@@ -588,6 +747,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     }
 
     override fun a11yState(): A11yState = when {
+        macHand() -> if (relay.configured()) A11yState.CONNECTED else A11yState.DISABLED
         PhoneRegistry.mainDriver != null -> A11yState.CONNECTED
         a11yEnabledInSettings() -> A11yState.ENABLED_NOT_CONNECTED
         else -> A11yState.DISABLED
@@ -599,7 +759,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         return "不打扰模式（后台屏）用不了$reason。只能在主屏操作；要用后台屏请用户到 设置 → 手机操控 → 不打扰模式 开通。"
     }
 
-    override fun system(): SystemApi = system
+    override fun system(): SystemApi = if (macHand()) relaySystem else system
 
     override fun zone(): ZoneId = ZoneId.systemDefault()
 
@@ -609,12 +769,14 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             nm.createNotificationChannel(NotificationChannel(CHANNEL_FIX, AppStrings.get(app, R.string.phone_fix_channel), NotificationManager.IMPORTANCE_HIGH))
         }
-        val pi = PendingIntent.getActivity(app, 0, accessibilitySettingsIntent(), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val mac = macHand()
+        val pi = PendingIntent.getActivity(app, 0, if (mac) relayPageIntent() else accessibilitySettingsIntent(), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val b = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Notification.Builder(app, CHANNEL_FIX) else @Suppress("DEPRECATION") Notification.Builder(app)
-        val text = if (a11yEnabledInSettings()) AppStrings.get(app, R.string.phone_a11y_disconnected_notice) else AppStrings.get(app, R.string.phone_a11y_enable_notice)
+        val text = if (mac) relayUserText(RelayStatus.of(relay).state) ?: AppStrings.get(app, R.string.phone_relay_state_unreachable)
+        else if (a11yEnabledInSettings()) AppStrings.get(app, R.string.phone_a11y_disconnected_notice) else AppStrings.get(app, R.string.phone_a11y_enable_notice)
         nm.notify(
             NOTIFY_FIX_ID,
-            b.setSmallIcon(R.drawable.ic_stat_dsh).setContentTitle(AppStrings.get(app, R.string.phone_a11y_title)).setContentText(text)
+            b.setSmallIcon(R.drawable.ic_stat_dsh).setContentTitle(AppStrings.get(app, if (mac) R.string.phone_relay_title else R.string.phone_a11y_title)).setContentText(text)
                 .setContentIntent(pi).setAutoCancel(true).build(),
         )
     }
@@ -625,6 +787,15 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         private const val K_ENABLED = "enabled"
         private const val K_POLICIES = "policies"
         private const val K_TCP_FALLBACK = "tcpFallback"
+        private const val K_HAND = "hand"
+        private const val IDLE_RELAY_POLL_MS = 30_000L
+        private val ADDR = Regex("^\\d{1,3}(\\.\\d{1,3}){3}:\\d{1,5}$")
+
+        /** IPv4:端口，端口 1–65535（超出会让套接字构造抛出非 IO 异常）。 */
+        fun validAddr(raw: String): Boolean {
+            val a = raw.trim()
+            return ADDR.matches(a) && a.substringAfterLast(':').toInt() in 1..65535
+        }
         private const val CHANNEL_FIX = "dsh-phone-fix"
         private const val NOTIFY_FIX_ID = 4099
 

@@ -105,7 +105,7 @@ List<VoiceModelAsset>? parseVoiceModelLock(String json) {
   }
 }
 
-/// The model's files inside one rootfs (`filesDir/runtime/rootfs`).
+/// The model's files inside one rootfs (the bridge's `status.rootfs`).
 class VoiceModelFiles {
   VoiceModelFiles(this.rootfs);
 

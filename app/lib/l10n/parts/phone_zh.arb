@@ -661,5 +661,9 @@
   },
   "phoneDndManualConnect": "按端口连接",
   "phoneDndConnectPortLabel": "连接端口",
-  "phoneDndConnectPortHint": "在系统「无线调试」首页查看「IP 地址和端口」，填写冒号后的端口。请不要使用配对码页面的端口。"
+  "phoneDndConnectPortHint": "在系统「无线调试」首页查看「IP 地址和端口」，填写冒号后的端口。请不要使用配对码页面的端口。",
+  "phoneLaunchBionic": "系统库启动",
+  "phoneBionicLimits": "这台手机的运行环境里没有 git 和 python，所以以下功能在 bionic 下不可用：从 Git 安装插件、依赖 python 的插件和技能、带原生组件的第三方插件、本地语音识别、终端、Office 转 PDF。",
+  "phoneBionicVoiceUnavailable": "这台手机的运行环境里没有本地语音识别需要的组件，本地语音模型不可用。",
+  "phoneBionicTerminalUnavailable": "这台手机的运行环境里没有终端需要的组件，本机引擎的终端不可用。"
 }

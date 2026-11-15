@@ -86,4 +86,21 @@ class GuestAgentsModeTest {
             assertEquals(modified, file.lastModified())
         } finally { root.deleteRecursively() }
     }
+
+    @Test fun nonIdentityGuestPathsReplaceEveryGuestPathInTheInstructions() {
+        val root = kotlin.io.path.createTempDirectory("agents-paths").toFile()
+        try {
+            val file = File(root, "root/.dsh/AGENTS.md")
+            val paths = GuestPaths.bionic(root)
+            GuestSetup.writeAgentsMd(root, phoneStorage = true, phoneControl = true, paths = paths)
+            val text = file.readText()
+            assertTrue(text.contains("`${paths.rootfs}/root/workspace`"))
+            assertTrue(text.contains("`${paths.rootfs}/root/手机存储`"))
+            assertEquals(paths.text(text), text)
+            assertFalse(Regex("(?<![\\w./~-])/root(?![\\w-])").containsMatchIn(text.replace(paths.rootfs!!, "ROOTFS")))
+            // 恒等映射下仍是原来的字节
+            GuestSetup.writeAgentsMd(root, phoneStorage = true, phoneControl = true)
+            assertTrue(file.readText().contains("`/root/workspace`"))
+        } finally { root.deleteRecursively() }
+    }
 }

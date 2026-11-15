@@ -1,0 +1,10 @@
+{
+  "note": "code 归一化后为大写 Crockford base32 无分隔符；password=UTF-8(code)，salt=nonce 原始字节，PBKDF2-HMAC-SHA256 200000 次 32 字节；全部输出小写 hex。",
+  "code": "7K3QM-9XD2A",
+  "normalizedCode": "7K3QM9XD2A",
+  "nonceHex": "000102030405060708090a0b0c0d0e0f",
+  "seenFp": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "keyHex": "9dac96e615ec49dbb006e0488ad2ff75848f0ded2b704abc7e2a293d3ec8a770",
+  "proofHex": "c7a74899820d42505e511a72477eaff1b48e62dd3dbc67bef5a29886d8476e25",
+  "serverProofHex": "54b2b9c20bbdb3bea654f4c3101e20b9889499d629b8dcd35e865afd0c0e2ab0"
+}

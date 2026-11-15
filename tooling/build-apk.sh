@@ -62,7 +62,7 @@ case "$flavor" in
   all) flavors=(arm64 x64) ;;
   *) die "flavor is arm64, x64 or all: $flavor" ;;
 esac
-for arg in "${extra[@]}"; do
+for arg in ${extra[@]+"${extra[@]}"}; do
   case "$arg" in
     --build-number* | --build-name* | --flavor* | --target-platform*)
       die "$arg is set by this script; use its own options" ;;
@@ -87,8 +87,8 @@ when=$(python3 "$ROOT/tooling/build_number.py" --decode "$code" 2>/dev/null || e
 
 platform_of() { case "$1" in arm64) echo android-arm64 ;; x64) echo android-x64 ;; esac; }
 
-# Beta channel token: handed to flutter in a JSON file (600, shredded on exit),
-# so it never shows up in the commands printed here.
+# Beta channel token: handed to flutter in a JSON file (600, removed on exit;
+# shredded first where shred exists), so it never shows up in the commands printed here.
 beta_file=${DSH_BETA_TOKEN_FILE-$HOME/keys/dshgo-beta-channel.token}
 beta_json="$APP/build/.beta-channel.json"
 beta=0
@@ -98,7 +98,8 @@ if ((want_beta)) && [[ ! -s $beta_file ]]; then
   die "--beta needs a token file ($beta_file)"
 fi
 if ((want_beta)) && [[ $mode == release && -n $beta_file && -s $beta_file ]]; then
-  bits=$(stat -c %a "$beta_file")
+  # BSD stat (macOS) first, GNU stat (Linux) second.
+  bits=$(stat -f %Lp "$beta_file" 2>/dev/null || stat -c %a "$beta_file")
   [[ $bits == 600 || $bits == 400 ]] || die "$beta_file is mode $bits; chmod 600 it"
   beta=1
 fi
@@ -109,7 +110,7 @@ for f in "${flavors[@]}"; do
     --build-name "$name" --build-number "$code" "--dart-define=DSH_APP_VERSION=$name+$code")
   [[ -n $target ]] && cmd+=(-t "$target")
   ((beta)) && cmd+=("--dart-define-from-file=$beta_json")
-  cmd+=("${extra[@]}")
+  cmd+=(${extra[@]+"${extra[@]}"})
   commands+=("$(printf '%q ' "${cmd[@]}")")
 done
 

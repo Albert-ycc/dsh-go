@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web 探针</title>
+<style>
+  body { font: 14px/1.5 sans-serif; margin: 8px; padding-bottom: 34vh; }
+  #state { font-weight: 700; padding: 4px 6px; background: #eef; }
+  #plain { font-size: 20px; line-height: 1.7; margin: 10px 0; padding: 6px; background: #f6f6f6; }
+  #log div { border-bottom: 1px solid #ddd; padding: 3px 0; word-break: break-all; font-size: 12px; }
+  .ok { color: #070; } .bad { color: #b00; }
+  .cap { font-size: 12px; color: #555; margin-top: 10px; }
+  .page { position: relative; margin: 4px 0 10px; outline: 1px solid #999; }
+  .page canvas { display: block; }
+  /* pdf.js 4.x 与 5.x 的文字层基础样式（取自各自的 pdf_viewer.css） */
+  .textLayer { position: absolute; text-align: initial; inset: 0; overflow: hidden; opacity: 1; line-height: 1;
+    -webkit-text-size-adjust: none; text-size-adjust: none; forced-color-adjust: none; transform-origin: 0 0; z-index: 0;
+    --min-font-size: 1; --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size)); --min-font-size-inv: calc(1 / var(--min-font-size)); }
+  .textLayer span, .textLayer br { color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%; }
+  .textLayer > :not(.markedContent), .textLayer .markedContent span:not(.markedContent) { z-index: 1;
+    --font-height: 0; font-size: calc(var(--text-scale-factor) * var(--font-height)); --scale-x: 1; --rotate: 0deg;
+    transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv)); }
+  .textLayer span.markedContent { top: 0; height: 0; }
+  .textLayer ::selection { background: rgba(0, 80, 255, .3); }
+  #sel { position: fixed; left: 0; right: 0; bottom: 0; max-height: 30vh; overflow: auto; z-index: 9;
+    background: #fff8d0; border-top: 2px solid #c90; padding: 6px 8px; font-size: 13px; word-break: break-all; }
+</style>
+<script>
+  // 先用最保守的写法把内核信息报回去：后面的模块脚本即使整段跑不起来，这一条也在
+  window.R = { ua: navigator.userAgent, t0: Date.now(), dpr: window.devicePixelRatio, vw: document.documentElement.clientWidth,
+    feats: null, pdf: [], events: {}, console: [], selection: null, done: false };
+  window.KEY = (/[?&]k=([a-z0-9]+)/i.exec(location.search) || [0, 'main'])[1];
+  window.postR = function () {
+    try { var x = new XMLHttpRequest(); x.open('POST', '/result?k=' + KEY, true); x.send(JSON.stringify(R)); } catch (e) {}
+  };
+  window.onerror = function (m, s, l) { R.console.push('ERROR ' + m + ' @' + String(s).split('/').pop() + ':' + l); postR(); };
+  ['log', 'warn', 'error'].forEach(function (k) {
+    var o = console[k];
+    console[k] = function () {
+      if (R.console.length < 80) R.console.push(k + ' ' + Array.prototype.slice.call(arguments).map(String).join(' ').slice(0, 300));
+      return o.apply(console, arguments);
+    };
+  });
+  postR();
+</script>
+</head>
+<body>
+<div id="state">运行中…</div>
+<p id="plain">对照段落：长按这一行文字，看能不能选中并弹出菜单。临床试验方案规定了入选标准与访视计划。</p>
+<div id="stage"></div>
+<div id="log"></div>
+<div id="sel">尚未选中文字</div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+let timer = 0;
+const post = () => { clearTimeout(timer); timer = setTimeout(postR, 120); };
+const show = (name, ok, detail) => {
+  const d = document.createElement('div');
+  d.className = ok ? 'ok' : 'bad';
+  d.textContent = (ok ? '✓ ' : '✗ ') + name + '  ' + detail;
+  $('log').appendChild(d);
+};
+const withTimeout = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + ' 超时 ' + ms + 'ms')), ms))]);
+const syntaxOk = (src) => { try { new Function(src); return true; } catch (e) { return false; } };
+
+function feats() {
+  const has = (o, k) => { try { return !!o && typeof o[k] !== 'undefined'; } catch (e) { return false; } };
+  const f = {
+    'Promise.withResolvers': has(Promise, 'withResolvers'),
+    'Promise.try': has(Promise, 'try'),
+    'AbortSignal.any': typeof AbortSignal !== 'undefined' && has(AbortSignal, 'any'),
+    'AbortSignal.timeout': typeof AbortSignal !== 'undefined' && has(AbortSignal, 'timeout'),
+    'Array.at': has(Array.prototype, 'at'),
+    'Array.findLast': has(Array.prototype, 'findLast'),
+    'Array.toSorted': has(Array.prototype, 'toSorted'),
+    'Array.fromAsync': has(Array, 'fromAsync'),
+    'Object.hasOwn': has(Object, 'hasOwn'),
+    'Object.groupBy': has(Object, 'groupBy'),
+    'Set.union': has(Set.prototype, 'union'),
+    'structuredClone': typeof structuredClone === 'function',
+    'URL.canParse': has(URL, 'canParse'),
+    'URL.parse': has(URL, 'parse'),
+    'String.replaceAll': has(String.prototype, 'replaceAll'),
+    'Uint8Array.toHex': has(Uint8Array.prototype, 'toHex'),
+    'OffscreenCanvas': typeof OffscreenCanvas !== 'undefined',
+    'createImageBitmap': typeof createImageBitmap === 'function',
+    'ImageDecoder': typeof ImageDecoder !== 'undefined',
+    'WebAssembly': typeof WebAssembly === 'object',
+    'wasm SIMD': typeof WebAssembly === 'object' && WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11])),
+    'SharedArrayBuffer': typeof SharedArrayBuffer !== 'undefined',
+    'ReadableStream asyncIterator': typeof ReadableStream !== 'undefined' && typeof Symbol.asyncIterator !== 'undefined' && has(ReadableStream.prototype, Symbol.asyncIterator),
+    'ResizeObserver': typeof ResizeObserver !== 'undefined',
+    'Intl.Segmenter': typeof Intl !== 'undefined' && has(Intl, 'Segmenter'),
+    'CSS :has': typeof CSS !== 'undefined' && CSS.supports && CSS.supports('selector(:has(a))'),
+    'CSS :is': typeof CSS !== 'undefined' && CSS.supports && CSS.supports('selector(:is(a))'),
+    'CSS inset': typeof CSS !== 'undefined' && CSS.supports && CSS.supports('inset', '0'),
+    'CSS nesting': typeof CSS !== 'undefined' && CSS.supports && CSS.supports('selector(&)'),
+    'visualViewport': typeof visualViewport !== 'undefined',
+    'navigator.clipboard': has(navigator, 'clipboard'),
+    'indexedDB': typeof indexedDB !== 'undefined',
+    'serviceWorker': has(navigator, 'serviceWorker'),
+    'syntax ?. ??': syntaxOk('var a={};return a?.b??1'),
+    'syntax ??=': syntaxOk('var a;a??=1'),
+    'syntax #private': syntaxOk('class A{#x=1;static #y(){}}'),
+    'syntax static{}': syntaxOk('class A{static{}}'),
+    'syntax regex v': syntaxOk('return /[\\p{L}--a]/v'),
+    'syntax top-level await 模块': true,
+  };
+  return f;
+}
+
+function moduleWorker() {
+  return new Promise((res) => {
+    try {
+      const u = URL.createObjectURL(new Blob(['postMessage(typeof Promise.withResolvers)'], { type: 'text/javascript' }));
+      const w = new Worker(u, { type: 'module' });
+      const t = setTimeout(() => res('超时'), 3000);
+      w.onmessage = (e) => { clearTimeout(t); res('可用（worker 内 withResolvers=' + e.data + '）'); };
+      w.onerror = (e) => { clearTimeout(t); res('报错 ' + (e.message || '')); };
+    } catch (e) { res('异常 ' + e); }
+  });
+}
+
+function ink(canvas) {
+  const c = document.createElement('canvas'); c.width = 60; c.height = 80;
+  const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 60, 80); x.drawImage(canvas, 0, 0, 60, 80);
+  const d = x.getImageData(0, 0, 60, 80).data; let n = 0;
+  for (let i = 0; i < d.length; i += 4) if (d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245) n++;
+  return Math.round(n / 4800 * 1000) / 1000;
+}
+
+async function runPdf(label, base, lib, worker, pdfUrl) {
+  const t0 = performance.now();
+  const out = { label, pdf: pdfUrl };
+  let div = null, cap = null;
+  try {
+    const m = await withTimeout(import(base + lib), 30000, 'import');
+    out.version = m.version;
+    m.GlobalWorkerOptions.workerSrc = base + worker;
+    const task = m.getDocument({ url: pdfUrl, disableAutoFetch: true, disableStream: true, cMapUrl: base + 'cmaps/', cMapPacked: true,
+      standardFontDataUrl: base + 'standard_fonts/', wasmUrl: base + 'wasm/', iccUrl: base + 'iccs/', isEvalSupported: false });
+    const pdf = await withTimeout(task.promise, 40000, 'getDocument');
+    out.pages = pdf.numPages;
+    out.openMs = Math.round(performance.now() - t0);
+    const page = await pdf.getPage(1);
+    const v1 = page.getViewport({ scale: 1 });
+    const scale = Math.max(300, Math.min(document.documentElement.clientWidth - 18, 900)) / v1.width;
+    const vp = page.getViewport({ scale });
+    cap = document.createElement('div'); cap.className = 'cap'; cap.textContent = label;
+    div = document.createElement('div'); div.className = 'page';
+    div.style.width = vp.width + 'px'; div.style.height = vp.height + 'px';
+    div.style.setProperty('--scale-factor', scale); div.style.setProperty('--total-scale-factor', scale);
+    div.style.setProperty('--scale-round-x', '1px'); div.style.setProperty('--scale-round-y', '1px');
+    const dpr = window.devicePixelRatio || 1;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.floor(vp.width * dpr); canvas.height = Math.floor(vp.height * dpr);
+    canvas.style.width = vp.width + 'px'; canvas.style.height = vp.height + 'px';
+    div.appendChild(canvas); $('stage').appendChild(cap); $('stage').appendChild(div);
+    out.canvasPx = canvas.width + 'x' + canvas.height;
+    const params = { canvasContext: canvas.getContext('2d'), canvas, viewport: vp };
+    if (dpr !== 1) params.transform = [dpr, 0, 0, dpr, 0, 0];
+    const tR = performance.now();
+    await withTimeout(page.render(params).promise, 90000, 'render');
+    out.renderMs = Math.round(performance.now() - tR);
+    out.ink = ink(canvas);
+    const tc = await withTimeout(page.getTextContent(), 30000, 'getTextContent');
+    out.textItems = tc.items.length;
+    out.textSample = tc.items.slice(0, 8).map((i) => i.str).join('').slice(0, 50);
+    if (tc.items.length) {
+      const tl = document.createElement('div'); tl.className = 'textLayer'; div.appendChild(tl);
+      await withTimeout(new m.TextLayer({ textContentSource: tc, container: tl, viewport: vp }).render(), 30000, 'TextLayer');
+      const spans = tl.querySelectorAll('span');
+      out.spans = spans.length;
+      // 文字层有没有压在字上：取一个中段的 span，看它落在页内哪里、多大
+      const s = spans[Math.floor(spans.length / 2)];
+      if (s) { const r = s.getBoundingClientRect(), pr = div.getBoundingClientRect();
+        out.midSpan = { text: s.textContent.slice(0, 16), x: Math.round(r.left - pr.left), y: Math.round(r.top - pr.top), w: Math.round(r.width), h: Math.round(r.height) }; }
+    }
+    out.ok = out.ink > 0.01;
+  } catch (e) {
+    out.ok = false; out.error = String(e && e.stack ? e.stack : e).slice(0, 500);
+    if (div) div.remove(); if (cap) cap.remove();
+  }
+  out.ms = Math.round(performance.now() - t0);
+  R.pdf.push(out); post();
+  const { label: _l, ...rest } = out;
+  show(label, out.ok, JSON.stringify(rest));
+  return out;
+}
+
+async function loopback(port) {
+  const o = { port }; const t = performance.now();
+  try { await withTimeout(fetch('http://127.0.0.1:' + port + '/', { mode: 'no-cors', cache: 'no-store' }), 4000, 'fetch'); o.reach = true; }
+  catch (e) { o.reach = false; o.error = String(e).slice(0, 120); }
+  o.ms = Math.round(performance.now() - t); return o;
+}
+
+// 选字：原生长按能不能选中文字层里的字，脚本拿不拿得到文本与矩形
+document.addEventListener('selectionchange', () => {
+  const s = getSelection(); const t = s ? s.toString() : '';
+  if (!t) return;
+  let rects = 0, where = '?';
+  if (s.rangeCount) {
+    const r = s.getRangeAt(0); rects = r.getClientRects().length;
+    const n = r.commonAncestorContainer; const el = n.nodeType === 1 ? n : n.parentElement;
+    where = el && el.closest('.textLayer') ? 'pdf文字层' : el && el.closest('#plain') ? '对照段落' : (el ? el.tagName : '?');
+  }
+  R.selection = { text: t.slice(0, 200), len: t.length, rects, where, atMs: Date.now() - R.t0, n: ((R.selection && R.selection.n) || 0) + 1 };
+  $('sel').textContent = '已选中〔' + where + '〕' + t.length + ' 字 / ' + rects + ' 个矩形：' + t.slice(0, 120);
+  post();
+});
+['touchstart', 'touchend', 'touchcancel', 'contextmenu', 'pointerdown', 'selectstart'].forEach((ev) =>
+  document.addEventListener(ev, () => { R.events[ev] = (R.events[ev] || 0) + 1; post(); }, { passive: true, capture: true }));
+
+(async () => {
+  R.feats = feats();
+  const m = /Chrome\/(\d+)/.exec(R.ua);
+  R.chromium = m ? +m[1] : null;
+  show('内核', true, 'Chromium ' + R.chromium + ' · dpr ' + R.dpr + ' · 宽 ' + R.vw + ' · ' + R.ua);
+  const missing = Object.keys(R.feats).filter((k) => !R.feats[k]);
+  show('缺的特性', missing.length === 0, missing.join('、') || '无');
+  R.moduleWorker = await moduleWorker();
+  show('模块 worker', R.moduleWorker.startsWith('可用'), R.moduleWorker);
+  // pdf.js 画页时每一段之间等一帧：页面不在前台时帧不来，渲染会一直挂着。先量一下，帧不来就改用定时器，后面的项才测得下去
+  R.raf = await new Promise((res) => { const t = setTimeout(() => res('1 秒内没有帧'), 1000); requestAnimationFrame(() => { clearTimeout(t); res('正常'); }); });
+  if (R.raf !== '正常') window.requestAnimationFrame = (cb) => setTimeout(() => cb(performance.now()), 16);
+  show('动画帧 requestAnimationFrame', R.raf === '正常', R.raf + (R.raf === '正常' ? '' : '，已改用定时器顶替'));
+  post();
+
+  const T = '/samples/text.pdf';
+  // B：伴读在用的 4.10.38 现代版，原样
+  const b = await runPdf('B 伴读同款 4.10.38·原样·文字版', '/pdfjs410/', 'pdf.min.mjs', 'pdf.worker.min.mjs', T);
+  let good = b.ok ? ['/pdfjs410/', 'pdf.min.mjs', 'pdf.worker.min.mjs'] : null;
+  // C：同一版本，页面与 worker 都先装补丁
+  if (!b.ok) {
+    try { await import('/poly/install.mjs'); R.poly = 'installed'; } catch (e) { R.poly = 'FAIL ' + e; }
+    show('装补丁', R.poly === 'installed', R.poly);
+    const c = await runPdf('C 4.10.38·加补丁·文字版', '/pdfjs410/', 'pdf.min.mjs?poly=1', 'worker-poly.mjs', T);
+    if (c.ok) good = ['/pdfjs410/', 'pdf.min.mjs?poly=1', 'worker-poly.mjs'];
+  }
+  // D：5.6.205 的旧浏览器兼容版
+  const d = await runPdf('D 5.6.205 legacy·文字版', '/pdfjs56l/', 'pdf.min.mjs', 'pdf.worker.min.mjs', T);
+  if (!good && d.ok) good = ['/pdfjs56l/', 'pdf.min.mjs', 'pdf.worker.min.mjs'];
+  R.goodBuild = good ? good.join(' ') : null;
+  // E：扫描版，用第一套能跑的
+  if (good) {
+    await runPdf('E1 扫描版·儿科学（整页 JPEG 1688×2360）', good[0], good[1], good[2], '/samples/scan.pdf');
+    await runPdf('E2 扫描版·皮肤性病学（整页 JPEG 2494×3461）', good[0], good[1], good[2], '/samples/scan-big.pdf');
+  } else show('扫描版', false, '没有能跑的 pdf.js 构建，跳过');
+  // G：同一容器里另一个应用的本机端口（DSH Go 引擎默认 3080）够不够得着
+  R.loopback = await loopback(3080);
+  show('本机 3080（DSH Go 引擎）', R.loopback.reach, JSON.stringify(R.loopback));
+  R.done = true; R.totalMs = Date.now() - R.t0;
+  $('state').textContent = 'DONE ' + R.totalMs + 'ms · 可用构建：' + (R.goodBuild || '无');
+  postR();
+})().catch((e) => { R.fatal = String(e && e.stack ? e.stack : e).slice(0, 500); $('state').textContent = 'FATAL ' + R.fatal; postR(); });
+</script>
+</body>
+</html>

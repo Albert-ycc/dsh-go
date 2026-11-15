@@ -24,6 +24,25 @@ You can add DSH to this phone anytime: tap **Install runtime** on the engine pag
 - **Logs**: the engine's live output.
 - **Background running** and **Diagnostics**: see [FAQ](11-faq.md).
 
+## HarmonyOS Zhuoyitong
+
+Zhuoyitong is the container that runs Android apps on Huawei phones. It blocks system calls the standard Linux runtime (glibc) needs to start, so the engine cannot start there. The app notices by itself: when the system kills glibc while it starts, it switches to the bionic runtime, which runs on the phone's own system libraries. Your data is not affected.
+
+<!-- nav: commonSettings,phoneEngineDiagnostics -->
+`Settings › Diagnostics`
+
+Choose under **Runtime type** on the Diagnostics page. It can only be changed while the local engine is stopped, and applies at the next start:
+
+- **Automatic**: the default, recommended. Picks for this phone; switching to bionic by itself doesn't count as a failed start or lead to Safe mode, and glibc is tried again once the app brings a new runtime.
+- **Force glibc**: only the standard Linux environment, with every feature.
+- **Force bionic**: only bionic. Greyed out when the phone has no matching runtime package.
+
+The same place shows the current runtime and **Why**. Direct launch does not apply to bionic, so the Diagnostics page no longer shows its switch.
+
+The runtime on this phone has no git or python, so under bionic these are unavailable: installing plugins from Git, plugins and skills that need python, third-party plugins with native components, on-device speech recognition, the terminal, and Office-to-PDF conversion. The command line is limited to the commands the system ships. Ordinary plugins, file access and networking are not affected.
+
+Phone control on Zhuoyitong needs a relay on a Mac; see [Phone control](04-phone-control.md).
+
 ## Reset the runtime
 
 <!-- nav: commonSettings,hubSettingsEngine,phoneEngineReset -->

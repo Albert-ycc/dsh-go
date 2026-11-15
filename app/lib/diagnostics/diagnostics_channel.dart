@@ -49,6 +49,7 @@ class NativeDiagnostics {
     this.app = const {},
     this.device = const {},
     this.manifest = const {},
+    this.engine = const {},
     this.voice = const {},
   });
 
@@ -59,6 +60,7 @@ class NativeDiagnostics {
       app: section(map['app']),
       device: section(map['device']),
       manifest: section(map['manifest']),
+      engine: section(map['engine']),
       voice: voiceDiagnosticsFacts(map['voice']),
     );
   }
@@ -73,6 +75,11 @@ class NativeDiagnostics {
 
   /// Summary of `assets/runtime/manifest.json`: versions, sizes, file count.
   final Map<String, Object?> manifest;
+
+  /// Which engine family the device resolves to and the facts behind it:
+  /// `engineFamily`, `engineFamilyReason`, `engineFamilyOverride`,
+  /// `seLinuxDomain`, `fingerprint` (device facts, no secrets).
+  final Map<String, Object?> engine;
 
   /// Content-free recognition service facts and at most 20 failure observations.
   final Map<String, Object?> voice;

@@ -446,5 +446,9 @@
   },
   "phoneDndManualConnect": "Connect by port",
   "phoneDndConnectPortLabel": "Connection port",
-  "phoneDndConnectPortHint": "On the main Wireless debugging settings page, find “IP address & port” and enter the port after the colon. Do not use the pairing-code dialog’s port."
+  "phoneDndConnectPortHint": "On the main Wireless debugging settings page, find “IP address & port” and enter the port after the colon. Do not use the pairing-code dialog’s port.",
+  "phoneLaunchBionic": "System-library launch",
+  "phoneBionicLimits": "The runtime on this phone has no git or python, so these features are unavailable under bionic: installing plugins from Git, plugins and skills that need python, third-party plugins with native components, on-device speech recognition, the terminal, and Office-to-PDF conversion.",
+  "phoneBionicVoiceUnavailable": "The runtime on this phone lacks the components on-device speech recognition needs, so the local voice model is unavailable.",
+  "phoneBionicTerminalUnavailable": "The runtime on this phone lacks the components the terminal needs, so the on-device engine's terminal is unavailable."
 }

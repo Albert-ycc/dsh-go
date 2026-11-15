@@ -34,17 +34,19 @@ class ReadListIdentity {
 /// Resolve the real root asynchronously. An absent/unknown root is not an
 /// identity. Installation changes retry the resolution; start/stop does not.
 final localReadListRootProvider = FutureProvider<String?>((ref) async {
-  ref.watch(
+  // The rootfs path is part of the watch: a family switch moves it.
+  final (_, _, reported) = ref.watch(
     localRuntimeProvider.select(
       (s) => (
         s.status.installedVersion,
         s.status.phase == RuntimePhase.installing || s.status.phase == RuntimePhase.notInstalled,
+        s.status.rootfs,
       ),
     ),
   );
   try {
-    final support = await getApplicationSupportDirectory();
-    return await Directory('${support.path}/runtime/rootfs').resolveSymbolicLinks();
+    final path = reported ?? '${(await getApplicationSupportDirectory()).path}/runtime/rootfs';
+    return await Directory(path).resolveSymbolicLinks();
   } on Object {
     return null;
   }

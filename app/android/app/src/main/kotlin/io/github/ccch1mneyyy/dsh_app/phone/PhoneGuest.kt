@@ -1,5 +1,6 @@
 package io.github.ccch1mneyyy.dsh_app.phone
 
+import io.github.ccch1mneyyy.dsh_app.runtime.GuestPaths
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -88,11 +89,14 @@ object PhoneGuest {
         ),
     ) + "\n"
 
+    /** The overlay as the engine reads it: guest paths mapped by [paths]. */
+    fun patchYaml(paths: GuestPaths = GuestPaths.IDENTITY): String = paths.text(PATCH_YAML)
+
     /** Writes the relay and the overlay (world-readable, no secrets). */
-    fun writeFiles(rootfs: File) {
+    fun writeFiles(rootfs: File, paths: GuestPaths = GuestPaths.IDENTITY) {
         val dir = realDir(guestFile(rootfs, GUEST_DIR), ownerOnly = false)
-        writeAtomic(File(dir, "relay.cjs"), RELAY_JS, ownerOnly = false)
-        writeAtomic(File(dir, "phone.patch.yml"), PATCH_YAML, ownerOnly = false)
+        writeAtomic(File(dir, "relay.cjs"), paths.text(RELAY_JS), ownerOnly = false)
+        writeAtomic(File(dir, "phone.patch.yml"), patchYaml(paths), ownerOnly = false)
     }
 
     /** Writes this launch's socket name and token, owner-only. */

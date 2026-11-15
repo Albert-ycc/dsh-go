@@ -26,6 +26,12 @@ interface PhoneEnv {
      */
     fun beforeHandoff(screen: PhoneScreen): String? = null
     fun sleep(ms: Long) = Thread.sleep(ms)
+
+    /** 系统页里连滚动也不代做：只对 Mac 手生效（锁屏上滑即解锁）。 */
+    fun strictSystemScroll(): Boolean = false
+
+    /** 一个工具调用超过自己的预算被放弃时调用（Mac 手借此取消中继队列里的作业）。 */
+    fun onToolTimeout() {}
 }
 
 /**
@@ -40,7 +46,7 @@ class PhoneCore(
     val worker: SerialWorker = SerialWorker("dsh-phone"),
 ) {
     private val ui: PhoneUiText get() = env.uiText()
-    val safety = SafetyGate(env::policies, tasks, env::gate, uiText = env.uiText())
+    val safety = SafetyGate(env::policies, tasks, env::gate, uiText = env.uiText(), strictScroll = env::strictSystemScroll)
 
     /** The overlay's status line; 免确认 stays visible the whole time nothing is asked. */
     private fun say(text: String) {
@@ -90,6 +96,7 @@ class PhoneCore(
         val out = when (outcome) {
             is SerialWorker.Outcome.Done -> outcome.value
             is SerialWorker.Outcome.TimedOut -> {
+                if (!outcome.queued) runCatching { env.onToolTimeout() }
                 val text = if (outcome.queued) {
                     // l10n:keep agent tool result
                     "前面的手机操作还没结束，这一步没有执行。稍后再试。"

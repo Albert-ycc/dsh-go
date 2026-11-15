@@ -1,0 +1,18 @@
+# dsh-go bionic engine: attachment-local stops its durable-directory walk at the rootfs. Upstream fsyncs every
+# ancestor of DSH_HOME up to the filesystem root; on physical paths that reaches /data/user/0, which the app
+# cannot open (EACCES), and every prompt carrying an image or file is rejected.
+--- a/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
++++ b/node_modules/@deepseek-ai/dsh-attachment-local/lib/index.js
+@@ -402,7 +402,11 @@
+ async function ensureDurableHome(path) {
+ 	const home = resolve(path);
+ 	if (!durableHomes.has(home)) {
+-		await ensureDurableDirectory(home, parse(home).root);
++		// dsh-go bionic: the engine runs on physical paths, so the walk to the filesystem root leaves the
++		// rootfs and hits directories the app may traverse but not open (/data/user/0). The guest root is
++		// the rootfs, as it is under PRoot; everything above it belongs to the installer.
++		const guestRoot = globalThis[Symbol.for("dsh.go.direct")]?.root;
++		await ensureDurableDirectory(home, typeof guestRoot === "string" && home.startsWith(`${guestRoot}/`) ? guestRoot : parse(home).root);
+ 		durableHomes.add(home);
+ 	}
+ 	return home;

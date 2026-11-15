@@ -1,0 +1,14 @@
+.gradle/
+build/
+app/build/
+local.properties
+.cxx/
+scripts/*.jpeg
+scripts/layout.json
+.kotlin/
+# 冒烟用的外部文件，由 scripts/stage-ext.sh 备齐
+app/src/main/jniLibs/
+app/src/main/assets/ext/
+# 冒烟结果含设备序列号与局域网地址
+results/
+app/src/main/assets/webprobe/
